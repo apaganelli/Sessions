@@ -1,0 +1,215 @@
+﻿<UserControl x:Class="Sessions.SessionsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Sessions"
+        mc:Ignorable="d"
+        Height="450" Width="650">
+
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type local:SessionViewModel}">
+           <Border BorderBrush="Black" BorderThickness="1" Padding="20">
+                <Grid Background="DodgerBlue">
+                    <Grid.Resources>
+                        <DataTemplate x:Key="newVideoItemTemplate" DataType="{x:Type local:VideoModel}">
+                            <Label Content="{Binding Path=Filename}" />
+                        </DataTemplate>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="8*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="6*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="ID" />
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Path=SessionId}" HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Name" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=SessionName}" Width="200" 
+                             Height="22" HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Date" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="2" Grid.Column="1"  Text="{Binding Path=SessionDate}" Width="100" Height="22"
+                             HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Modality" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1"  Text="{Binding Path=Modality}" Width="200" Height="22"
+                             HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Type" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="4" Grid.Column="1"  Text="{Binding Path=SessionType}" Width="200" Height="22"
+                             HorizontalAlignment="Left" />
+
+                    <Grid Grid.Row="5" Grid.ColumnSpan="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="3*" />
+                            <RowDefinition Height="1*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Video List" VerticalAlignment="Center" />
+                        
+                        <ListBox x:Name="NewVideoList" Margin="0,10,0,20" Grid.Row="0" Grid.Column="1"
+                            ItemsSource="{Binding Path=VideoList}" 
+                            ItemTemplate="{StaticResource newVideoItemTemplate }"
+                            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            IsSynchronizedWithCurrentItem="True" Visibility="Visible" />
+                        
+                        <StackPanel VerticalAlignment="Top" Grid.Row="0" Grid.Column="2">
+                            <Button Width="50" Content="+" FontSize="18" Foreground="Blue" x:Name="OnAddVideo"
+                                Click="OnAddVideo_Click" Margin="5,20,0,10" />
+                            <Button Width="50" Content="X" FontSize="16" Foreground="Red" x:Name="OnDeleteVideo"
+                                Click="OnDeleteVideo_Click" Margin="5,10,0,0" />
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Height="22" HorizontalAlignment="Left" VerticalAlignment="Top" Text="Power" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" DataContext="{Binding ElementName=NewVideoList, Path=SelectedItem}" 
+                             Text="{Binding Path=Power}" Width="80" Height="22" 
+                             VerticalAlignment="Top"  HorizontalAlignment="Left" />
+                        
+                        <CheckBox Grid.Row="1" Grid.Column="2" DataContext="{Binding ElementName=NewVideoList, Path=SelectedItem}" 
+                             Content="Calibration"  IsChecked="{Binding Path=IsCalibration}" 
+                             HorizontalAlignment="Left" IsEnabled="False" />
+                    </Grid>
+
+                    <Button Grid.Row="6" Grid.Column="0" Width="80" Content="{Binding Path=ButtonText}" x:Name="btSave" 
+                            HorizontalAlignment="Left" Command="{Binding SaveSessionCommand}" Loaded="btSave_Loaded"  />
+                    
+                    <Button Grid.Row="6" Grid.Column="1" Width="80" Content="Cancel" Command="{Binding CancelSessionCommand}"
+                            HorizontalAlignment="Left" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:SessionsViewModel}">
+            <Grid Background="DodgerBlue">
+                <Grid.DataContext>
+                    <XmlDataProvider x:Name="SessionsInventory"  Source="C:\Users\anton\source\repos\Sessions\Sessions\bin\Debug\Sessions2.xml"  XPath="Sessions/Session" />
+                </Grid.DataContext>
+
+                <Grid.Resources>
+                    <DataTemplate x:Key="sessionItemTemplate">
+                        <Label Content="{Binding XPath=@Name}" />
+                    </DataTemplate>
+
+                    <DataTemplate x:Key="videoItemTemplate" >
+                        <Label Content="{Binding}" />
+                    </DataTemplate>
+
+                    <Style TargetType="{x:Type Control}" x:Key="baseStyle" >
+                        <Setter Property="FontSize" Value="18" />
+                    </Style>
+
+                    <Style TargetType="{x:Type Label}" BasedOn="{StaticResource baseStyle}" />
+                    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource baseStyle}" />
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource baseStyle}" />
+                    <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource baseStyle}" />
+                </Grid.Resources>
+                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="10*" />
+                    <RowDefinition Height="80*" />
+                    <RowDefinition Height="10*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150*" />
+                    <ColumnDefinition Width="350*" />
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Content="List of Recorded Sessions" />
+
+                <ListBox x:Name="SessionList" Margin="10,0,0,20" Grid.Row="1" Grid.Column="0"
+                 ItemsSource="{Binding}" ItemTemplate="{StaticResource sessionItemTemplate }" 
+                 ScrollViewer.VerticalScrollBarVisibility="Visible"  Background="Gainsboro"
+                 IsSynchronizedWithCurrentItem="True" Visibility="Visible" SelectionMode="Single" />
+
+                <Grid Grid.Row="1" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="2*"/>
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30*" />
+                        <ColumnDefinition Width="70*" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <Label Grid.Row="0" Grid.Column="0"  Content="Id" />
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding XPath=@Id, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="lbId" TextChanged="lbId_TextChanged" Visibility="Hidden"
+                           Text="{Binding XPath=@Id}" />
+
+                    <Label Grid.Row="1" Grid.Column="0" Content="Date" />
+                    <Label Grid.Row="1" Grid.Column="1"  Content="{Binding XPath=@Date}" />
+
+                    <Label Grid.Row="2" Grid.Column="0" Content="Modality" />
+                    <Label Grid.Row="2" Grid.Column="1"  Content="{Binding XPath=@Modality}" />
+
+                    <Label Grid.Row="3" Grid.Column="0" Content="Type" />
+                    <Label Grid.Row="3" Grid.Column="1"  Content="{Binding XPath=@Type}" />
+
+                    <Label Grid.Row="4" Grid.Column="0" Content="Video List" />
+                    <ComboBox x:Name="VideoList" Margin="0,0,8,20" Grid.Row="4" Grid.Column="1"
+                    ItemsSource="{Binding XPath=Video}" ItemTemplate="{StaticResource videoItemTemplate }"
+                    ScrollViewer.HorizontalScrollBarVisibility="Visible"          
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    IsSynchronizedWithCurrentItem="True" Visibility="Visible" />
+
+                    <Label Grid.Row="5" Grid.Column="0" Content="Video Power" />
+                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal">
+                        <Label Grid.Row="5" Grid.Column="1" DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
+                               Content="{Binding XPath=@Power}" Margin="5,0,40,0"/>
+
+                        <CheckBox Grid.Row="5" Grid.Column="2" DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
+                             Content="Calibration" IsChecked="{Binding XPath=@Calibration}" IsEnabled="False" 
+                                  Margin="0,10"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="2" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="New" DockPanel.Dock="Right" Margin="10,2" VerticalAlignment="Center"
+                        Command="{Binding DataContext.NewSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" IsDefault="True" Width="100" />
+
+                    <Button Grid.Column="1" Content="Edit" DockPanel.Dock="Right" Margin="10,2" VerticalAlignment="Center"
+                        Command="{Binding DataContext.EditSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" IsDefault="True" Width="100" />
+
+                    <Button Grid.Column="2" Content="Delete" DockPanel.Dock="Right" Margin="10,2" VerticalAlignment="Center"
+                        Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" IsDefault="True" Width="100" />
+
+                    <Button Grid.Column="3" Content="Select" DockPanel.Dock="Right" Margin="10,2" VerticalAlignment="Center"
+                        Command="{Binding DataContext.SelectSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" IsDefault="True" Width="100" />
+                </Grid>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+    
+    <Grid>
+        <ContentControl Content="{Binding}"/>
+    </Grid>
+</UserControl>

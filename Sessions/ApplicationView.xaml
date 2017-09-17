@@ -1,0 +1,43 @@
+﻿<Window x:Class="Sessions.ApplicationView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Sessions"
+        mc:Ignorable="d"
+        Title="Sessions Application" Height="300" Width="450"
+        WindowState="Maximized">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type local:SessionsViewModel}">
+            <local:SessionsView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:SessionViewModel}">
+            <local:SessionsView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:CalibrationViewModel}">
+            <local:CalibrationView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:ExecutionViewModel}">
+            <local:PositionsView />
+        </DataTemplate>
+        
+    </Window.Resources>
+    <TabControl SelectionChanged="TabControl_SelectionChanged">
+        <TabItem Header="Sessions" x:Name="TabItemSessions">
+            <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+        </TabItem>
+
+        <TabItem Header="Calibration" x:Name="TabItemCalibration">
+            <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+        </TabItem>
+        
+        <TabItem Header="Execution" x:Name="TabItemExecution">
+            <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+        </TabItem>
+        
+    </TabControl>
+</Window>
