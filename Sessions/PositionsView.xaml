@@ -5,19 +5,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sessions"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300"
-             Background="White">
+             d:DesignHeight="550" d:DesignWidth="800"
+             Background="White"
+             Loaded="UserControl_Loaded">
     <DockPanel>
         <Grid DockPanel.Dock="Top" Margin="0,0,2,0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="1.2*" />
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="12*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width=".2*" />
@@ -27,54 +29,60 @@
                 <ColumnDefinition Width=".4*" />
                 <ColumnDefinition Width=".4*" />
                 <ColumnDefinition Width=".4*" />
-                <ColumnDefinition Width=".5*" />
+                <ColumnDefinition Width=".4*" />
             </Grid.ColumnDefinitions>
-            
-            <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Content="Hip" HorizontalAlignment="Center"/>
-            <Label Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2" Content="Knee" HorizontalAlignment="Center"/>
-            <Label Grid.Row="0" Grid.Column="5" Grid.ColumnSpan="2" Content="Ankle" HorizontalAlignment="Center"/>
 
-            <Label Grid.Row="1" Grid.Column="1" Content="Left" HorizontalAlignment="Center" />
-            <Label Grid.Row="1" Grid.Column="2" Content="Right" HorizontalAlignment="Center" />
-            <Label Grid.Row="1" Grid.Column="3" Content="Left" HorizontalAlignment="Center" />
-            <Label Grid.Row="1" Grid.Column="4" Content="Right" HorizontalAlignment="Center" />
-            <Label Grid.Row="1" Grid.Column="5" Content="Left" HorizontalAlignment="Center" />
-            <Label Grid.Row="1" Grid.Column="6" Content="Right" HorizontalAlignment="Center" />
+            <StackPanel Grid.Row="0" Grid.ColumnSpan="8" Orientation="Horizontal">
+                <Label Content="Name: " />
+                <Label Content="{Binding Path=SelectedName}" />
+                <CheckBox Margin="20,5,0,0" Content="Has Calibration Data" IsChecked="{Binding Path=HasCalibration}" IsEnabled="False"/>
+                <Button Margin="50,3,0,3" Content=" Start " Command="{Binding Path=StartCommand}" />
+                <Button Margin="5,3,0,3" Content=" Stop " Command="{Binding Path=StopCommand}"/>
+                <Label Margin="20,0,0,0" Content="{Binding Path=ExecutionStatus}" />
+            </StackPanel>
 
-            <Label Grid.Row="2" Grid.Column="0" Content="X:" />
-            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtHipLeftX" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="2" Grid.Column="2" x:Name="txtHipRightX" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="2" Grid.Column="3" x:Name="txtKneeLeftX" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="2" Grid.Column="4" x:Name="txtKneeRightX" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox  Grid.Row="2" Grid.Column="5" x:Name="txtAnkleLeftX" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox  Grid.Row="2" Grid.Column="6" x:Name="txtAnkleRightX" x:FieldModifier="public" Margin="5" Text="0.00"/>
+            <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Content="Hip" HorizontalAlignment="Center"/>
+            <Label Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Content="Knee" HorizontalAlignment="Center"/>
+            <Label Grid.Row="1" Grid.Column="5" Grid.ColumnSpan="2" Content="Ankle" HorizontalAlignment="Center"/>
 
-            <Label Grid.Row="3" Grid.Column="0" Content="Y:" />
-            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtHipLeftY" x:FieldModifier="public"  Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtHipRightY" x:FieldModifier="public"  Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="3" Grid.Column="3" x:Name="txtKneeLeftY" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="3" Grid.Column="4" x:Name="txtKneeRightY" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="3" Grid.Column="5" x:Name="txtAnkleLeftY" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="3" Grid.Column="6" x:Name="txtAnkleRightY" x:FieldModifier="public" Margin="5" Text="0.00"/>
+            <Label Grid.Row="2" Grid.Column="1" Content="Left" HorizontalAlignment="Center" />
+            <Label Grid.Row="2" Grid.Column="2" Content="Right" HorizontalAlignment="Center" />
+            <Label Grid.Row="2" Grid.Column="3" Content="Left" HorizontalAlignment="Center" />
+            <Label Grid.Row="2" Grid.Column="4" Content="Right" HorizontalAlignment="Center" />
+            <Label Grid.Row="2" Grid.Column="5" Content="Left" HorizontalAlignment="Center" />
+            <Label Grid.Row="2" Grid.Column="6" Content="Right" HorizontalAlignment="Center" />
 
-            <Label Grid.Row="4" Grid.Column="0" Content="Z:" />
-            <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtHipLeftZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="4" Grid.Column="2" x:Name="txtHipRightZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="4" Grid.Column="3" x:Name="txtKneeLeftZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="4" Grid.Column="4" x:Name="txtKneeRightZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="4" Grid.Column="5" x:Name="txtAnkleLeftZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
-            <TextBox Grid.Row="4" Grid.Column="6" x:Name="txtAnkleRightZ" x:FieldModifier="public" Margin="5" Text="0.00"/>
+            <Label Grid.Row="3" Grid.Column="0" Content="X:" />
+            <TextBox Grid.Row="3" Grid.Column="1" x:Name="txtHipLeftX" Text="{Binding Path=HipLeftPosition.X}" Margin="5" />
+            <TextBox Grid.Row="3" Grid.Column="2" x:Name="txtHipRightX" Text="{Binding Path=HipRightPosition.X}" Margin="5" />
+            <TextBox Grid.Row="3" Grid.Column="3" x:Name="txtKneeLeftX" Text="{Binding Path=KneeLeftPosition.X}" Margin="5"/>
+            <TextBox Grid.Row="3" Grid.Column="4" x:Name="txtKneeRightX" Text="{Binding Path=KneeRightPosition.X}" Margin="5" />
+            <TextBox Grid.Row="3" Grid.Column="5" x:Name="txtAnkleLeftX" Text="{Binding Path=AnkleLeftPosition.X}" Margin="5" />
+            <TextBox Grid.Row="3" Grid.Column="6" x:Name="txtAnkleRightX" Text="{Binding Path=AnkleRightPosition.X}" Margin="5" />
 
-            <Label Grid.Row="0" Grid.Column="7" Content="Camera" HorizontalAlignment="Center"/>
-            <Label Grid.Row="1" Grid.Column="7" Content="Tilt" HorizontalAlignment="Center" />
-            <TextBox x:Name="txtTiltX" x:FieldModifier="public" Margin="5" Grid.Column="7" Grid.Row="2" Text="0.00"/>
-            <TextBox x:Name="txtTiltY" x:FieldModifier="public" Margin="5" Grid.Column="7" Grid.Row="3" Text="0.00"/>
-            <TextBox x:Name="txtTiltZ" x:FieldModifier="public" Margin="5" Grid.Column="7" Grid.Row="4" Text="0.00"/>
-            <TextBox x:Name="txtTiltAngle" x:FieldModifier="public" Margin="5" Grid.Column="7" Grid.Row="5" Text="0.00"/>
+            <Label Grid.Row="4" Grid.Column="0" Content="Y:" />
+            <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtHipLeftY" Text="{Binding Path=HipLeftPosition.Y}" Margin="5"/>
+            <TextBox Grid.Row="4" Grid.Column="2" x:Name="txtHipRightY" Text="{Binding Path=HipRightPosition.Y}" Margin="5"/>
+            <TextBox Grid.Row="4" Grid.Column="3" x:Name="txtKneeLeftY" Text="{Binding Path=KneeLeftPosition.Y}" Margin="5"/>
+            <TextBox Grid.Row="4" Grid.Column="4" x:Name="txtKneeRightY" Text="{Binding Path=KneeRightPosition.Y}" Margin="5"/>
+            <TextBox Grid.Row="4" Grid.Column="5" x:Name="txtAnkleLeftY" Text="{Binding Path=AnkleLeftPosition.Y}" Margin="5"/>
+            <TextBox Grid.Row="4" Grid.Column="6" x:Name="txtAnkleRightY" Text="{Binding Path=AnkleRightPosition.Y}" Margin="5"/>
 
-            <Grid Grid.Row="8" Grid.ColumnSpan="8">
+            <Label Grid.Row="5" Grid.Column="0" Content="Z:" />
+            <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtHipLeftZ" Text="{Binding Path=HipLeftPosition.Z}" Margin="5"/>
+            <TextBox Grid.Row="5" Grid.Column="2" x:Name="txtHipRightZ" Text="{Binding Path=HipRightPosition.Z}" Margin="5"/>
+            <TextBox Grid.Row="5" Grid.Column="3" x:Name="txtKneeLeftZ" Text="{Binding Path=KneeLeftPosition.Z}" Margin="5"/>
+            <TextBox Grid.Row="5" Grid.Column="4" x:Name="txtKneeRightZ" Text="{Binding Path=KneeRightPosition.Z}" Margin="5"/>
+            <TextBox Grid.Row="5" Grid.Column="5" x:Name="txtAnkleLeftZ" Text="{Binding Path=AnkleLeftPosition.Z}" Margin="5"/>
+            <TextBox Grid.Row="5" Grid.Column="6" x:Name="txtAnkleRightZ" Text="{Binding Path=AnkleRightPosition.Z}" Margin="5" />
+
+            <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4" VerticalAlignment="Top">
+                <Canvas Margin="5,5,5,5" Name="CanvasPosition" Height="300" Width="400" />
+            </Grid>
+
+            <Grid Grid.Row="9" Grid.Column="4" Grid.ColumnSpan="4" VerticalAlignment="Top" HorizontalAlignment="Center">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Canvas Name="CanvasPosition" />
+                    <Canvas Name="CanvasImage" Height="300" Width="400"  />
                 </ScrollViewer>
             </Grid>
         </Grid>

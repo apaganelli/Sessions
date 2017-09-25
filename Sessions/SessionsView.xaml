@@ -110,7 +110,7 @@
                     <DataTemplate x:Key="videoItemTemplate" >
                         <Label Content="{Binding}" />
                     </DataTemplate>
-
+                    
                     <Style TargetType="{x:Type Control}" x:Key="baseStyle" >
                         <Setter Property="FontSize" Value="18" />
                     </Style>
@@ -134,7 +134,7 @@
                 <Label Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Content="List of Recorded Sessions" />
 
                 <ListBox x:Name="SessionList" Margin="10,0,0,20" Grid.Row="1" Grid.Column="0"
-                 ItemsSource="{Binding}" ItemTemplate="{StaticResource sessionItemTemplate }" 
+                 ItemsSource="{Binding}" ItemTemplate="{StaticResource sessionItemTemplate }"                         
                  ScrollViewer.VerticalScrollBarVisibility="Visible"  Background="Gainsboro"
                  IsSynchronizedWithCurrentItem="True" Visibility="Visible" SelectionMode="Single" />
 

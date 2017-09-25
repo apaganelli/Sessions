@@ -52,7 +52,7 @@ namespace Sessions
                         firstCalibrationPage = false;
                     }
 
-                    calViewModel.LoadCalibrationData();
+                    calViewModel.LoadCalibrationData(false);
                     app.CurrentPageViewModel = calViewModel;
                 } else if(TabItemExecution.IsSelected)
                 { 
@@ -62,8 +62,8 @@ namespace Sessions
                         firstExecutionPage = false;
                     }
 
+                    exeViewModel.LoadExecutionModel();
                     app.CurrentPageViewModel = exeViewModel;
-
                 } else if(TabItemSessions.IsSelected)
                 {
                     // This is the first and default page.

@@ -24,5 +24,12 @@ namespace Sessions
         {
             InitializeComponent();
         }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            ExecutionViewModel context = (ExecutionViewModel)DataContext;
+            context.CanvasSkeleton = CanvasPosition;
+            context.CanvasImage = CanvasImage;
+        }
     }
 }

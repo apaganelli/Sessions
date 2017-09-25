@@ -33,7 +33,10 @@ namespace Sessions
         private ApplicationViewModel _app;
         private ObservableCollection<string> _jointTypes;
 
+        private SessionModel _session = null;
+
         private int _selectedId = 0;                            // Selected session ID for running got from _app
+        private string _selectedName;
         private int _numFrames = 0;
         private string _selectedJoint = null;
         private int _selectedJointIndex = 0;
@@ -43,7 +46,7 @@ namespace Sessions
         private int _processedFrames = 0;
         private string _calibrationStatus = "Configuring ...";
 
-        private SessionViewModel session = null;
+        private SessionViewModel _sessionVM = null;
 
         /// <summary>
         /// Pointer to xml sessions data file.
@@ -73,7 +76,7 @@ namespace Sessions
             _jointTypes.Add("HipLeft");
             _jointTypes.Add("Head");
 
-            LoadCalibrationData();
+            LoadCalibrationData(false);
         }
 
         #endregion // Constructor
@@ -170,13 +173,27 @@ namespace Sessions
             }
         }
 
+        public string SelectedName
+        {
+            get { return _selectedName; }
+            set
+            {
+                if(value != _selectedName)
+                {
+                    _selectedName = value;
+                    OnPropertyChanged("SelectedName");
+                }
+            }
+        }
+
 
         /// <summary>
         /// Load calibration data of the selected ID. (if a calibration had already been performed.)
         /// Returns the filename of the selected video for calibration
         /// Update calibration information of calibration view model.
         /// </summary>
-        public string LoadCalibrationData()
+        /// <param name="onlyFilename">Gets only filename or load full information</param>
+        public string LoadCalibrationData(bool onlyFilename)
         {
             string filename = null;
 
@@ -186,24 +203,20 @@ namespace Sessions
 
             if (_selectedId > 0)
             {
-                CalibrationStatus = "Configuring ....";
-                ProcessedFrames = 0;
-                CalibrationResult = new Vector3(0, 0, 0);
-
                 var page = _app.PageViewModels.Where(p => p.Name == "Session View");
 
                 // If exist already an instance of SessionViewModel, then use it, or instantiate one.
                 if (page.Any())
                 {
-                    session = (SessionViewModel)page;
+                    _sessionVM = (SessionViewModel)page;
                 }
                 else
                 {
-                    session = new SessionViewModel(_app);
+                    _sessionVM = new SessionViewModel(_app);
                 }
 
                 // Gets persistent Session information.
-                xmlSessionDoc = session.XmlSessionDoc;
+                xmlSessionDoc = _sessionVM.XmlSessionDoc;
 
                 // Find the selected session in order to pick up the calibration video.
                 string xpath = "/Sessions/Session[@Id='{0}']";
@@ -212,30 +225,35 @@ namespace Sessions
 
                 if (xNode != null)
                 {
-                    foreach (XmlNode child in xNode)
+                    _session = _sessionVM.LoadSession(xNode);
+                    SelectedName = _session.SessionName;
+
+                    foreach (VideoModel video in _session.VideoList)
                     {
-                        if (child.Name == "Video")
+                        if (video.IsCalibration)
                         {
-                            if (child.Attributes["Calibration"].Value == "True")
-                            {
-                                filename = child.InnerText;
-                            }
-                        } else if(child.Name == "Calibration")
-                        {
-                            _jointType = (JointType)Int32.Parse(child.Attributes["JointType"].Value);
-                            NumFrames = Int32.Parse(child.Attributes["NumFrames"].Value);
-                            float x, y, z;
-
-                            x = float.Parse(child.Attributes["X"].Value);
-                            y = float.Parse(child.Attributes["Y"].Value);
-                            z = float.Parse(child.Attributes["Z"].Value);
-
-                            CalibrationResult = new Vector3(x, y, z);
-
-                            // Update currentSession information?
+                            filename = video.Filename;
                         }
                     }
+
+                    if (_session.Calibration != null && !onlyFilename)
+                    {
+                        _jointType = _session.Calibration.JointType;
+                        NumFrames = _session.Calibration.NumFrames;
+                        CalibrationResult = _session.Calibration.Position;
+                        ConvertSelectedJointIndex();
+                        _app.SessionsViewModel.CurrentSession = _session;
+                    }                    
                 }
+            }
+
+            if(filename == null)
+            {
+                CalibrationStatus = "Configuring ....";
+                ProcessedFrames = 0;
+                CalibrationResult = new Vector3(0, 0, 0);
+                SelectedJointIndex = 0;
+                NumFrames = 0;
             }
 
             return filename;
@@ -330,20 +348,29 @@ namespace Sessions
 
             // Session is a member of SessionViewModel class. It was linked during constructor´s call
             // to LoadCalibration data.
-            session.SaveCalibrationData(xNode, calibration);
+            _sessionVM.SaveCalibrationData(xNode, calibration);
 
             // Update current session calibration values.
-            _app.SessionsViewModel.CurrentSession.Calibration = calibration;
+
+            if(_app.SessionsViewModel.CurrentSession != null)
+            {
+                _app.SessionsViewModel.CurrentSession.Calibration = calibration;
+            }
+
+            ProcessedFrames = 0;
             MessageBox.Show("Calibration saved.", "Calibration", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        /// <summary>
+        /// Private function for running calibration processes, starting kinect playback on selected calibration video.
+        /// </summary>
         private void RunCalibration()
         {
             string filename = null;
 
             if (_selectedId > 0)
             {
-                filename = LoadCalibrationData();
+                filename = LoadCalibrationData(true);
 
                 if (filename == null)
                 {
@@ -360,8 +387,8 @@ namespace Sessions
                 // Convert UI selected joint (string) to JointType (Enum - Kinect) and store it in _jointType.
                 ConvertSelectedJoint();
 
-                SessionKinect runVideo = null;
-                runVideo = new SessionKinect(this, filename, NumFrames, _jointType);
+                SessionCalibrationKinect runVideo = null;
+                runVideo = new SessionCalibrationKinect(this, filename, NumFrames, _jointType);
             }
             else
             {

@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Sessions
 {
-    class SessionKinect
+    class SessionCalibrationKinect
     {
         private KinectSensor _sensor = null;
         private MultiSourceFrameReader _reader = null;
@@ -30,7 +30,7 @@ namespace Sessions
         /// Constructor for playing filename using KStudio.
         /// </summary>
         /// <param name="filename"></param>
-        public SessionKinect(CalibrationViewModel callingProcess, string filename, int numFrame, JointType joint)
+        public SessionCalibrationKinect(CalibrationViewModel callingProcess, string filename, int numFrame, JointType joint)
         {
             _sensor = KinectSensor.GetDefault();
             _calling = callingProcess;

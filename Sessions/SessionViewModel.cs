@@ -50,6 +50,8 @@ namespace Sessions
             _session.SessionId = nextId;
             _session.VideoList = new ObservableCollection<VideoModel>();
             _session.Calibration = new CalibrationModel();
+
+            _appViewModel.SessionsViewModel.CurrentSession = _session;
         }
 
         /// <summary>
@@ -67,6 +69,7 @@ namespace Sessions
             LoadSessions();
             IEnumerable<SessionModel> s = AllSessions.Where(x => x.SessionId == id);
             _session = s.FirstOrDefault();
+            _appViewModel.SessionsViewModel.CurrentSession = _session;
 
             if (!isRemove)
                 Operation = "Edit";
@@ -75,6 +78,25 @@ namespace Sessions
                 Operation = "Remove";
                 _buttonText = "Confirm?";
             }
+        }
+
+        /// <summary>
+        /// Constructor for loading a session indexed by id into Session instance.
+        /// </summary>
+        /// <param name="id">SessionId to be loaded</param>
+        public SessionViewModel(int id)
+        {
+            _xmlSessionDoc = new XmlDocument();
+            string xmlFilename = System.Configuration.ConfigurationManager.AppSettings["xmlSessionsFile"];
+            _xmlSessionDoc.Load(xmlFilename);
+
+            string xpath = "/Sessions/Session[@Id='{0}']";
+            xpath = String.Format(xpath, id);
+
+            XmlNode xNode = null;
+            xNode = _xmlSessionDoc.DocumentElement.SelectSingleNode(xpath);
+
+            _session = LoadSession(xNode);
         }
 
         public string ButtonText
@@ -163,6 +185,11 @@ namespace Sessions
             get { return _session.Calibration; }
         }
 
+        public SessionModel Session
+        {
+            get { return _session; }
+        }
+
         public ICommand CancelSessionCommand
         {
             get
@@ -206,6 +233,66 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Loads Xml data of a specific node into SessionModel instance.
+        /// </summary>
+        /// <param name="node">XMLNode to be loaded int SessionModel instance</param>
+        /// <returns></returns>
+        public SessionModel LoadSession(XmlNode node)
+        {
+            SessionModel s = new SessionModel();
+            s.SessionId = Int32.Parse(node.Attributes["Id"].Value);
+            s.SessionName = node.Attributes["Name"].Value;
+            s.SessionDate = node.Attributes["Date"].Value;
+            s.Modality = node.Attributes["Modality"].Value;
+            s.SessionType = node.Attributes["Type"].Value;
+            s.VideoList = new ObservableCollection<VideoModel>();
+
+            foreach (XmlNode child in node)
+            {
+                // Has to check if child is not Calibration
+                if (child.Name == "Video")
+                {
+                    VideoModel video = new VideoModel();
+
+                    video.Sequence = Int32.Parse(child.Attributes["Sequence"].Value);
+                    video.Power = Int32.Parse(child.Attributes["Power"].Value);
+
+                    if (child.Attributes["Calibration"].Value == "True")
+                    {
+                        video.IsCalibration = true;
+                    }
+                    else
+                    {
+                        video.IsCalibration = false;
+                    }
+
+                    video.Filename = child.InnerText;
+
+                    s.VideoList.Add(video);
+                }
+                else if (child.Name == "Calibration")
+                {
+                    if (s.Calibration == null)
+                    {
+                        s.Calibration = new CalibrationModel();
+                    }
+                    s.Calibration.CalSessionId = s.SessionId;
+                    s.Calibration.NumFrames = Int32.Parse(child.Attributes["NumFrames"].Value);
+                    s.Calibration.JointType = (JointType)Int32.Parse(child.Attributes["JointType"].Value);
+
+                    float x, y, z;
+                    x = float.Parse(child.Attributes["X"].Value);
+                    y = float.Parse(child.Attributes["Y"].Value);
+                    z = float.Parse(child.Attributes["Z"].Value);
+
+                    s.Calibration.Position = new Vector3(x, y, z);
+                }
+            }
+
+            return s;
+        }
+
         public void SaveCalibrationData(XmlNode node, CalibrationModel c)
         {
             XmlNode oldCalibration = node.SelectSingleNode("Calibration");
@@ -223,10 +310,9 @@ namespace Sessions
             CreateAttribute(vNode, "Y", c.Position.Y.ToString("0.00000"));
             CreateAttribute(vNode, "Z", c.Position.Z.ToString("0.00000"));
             node.AppendChild(vNode);
+
             _xmlSessionDoc.Save(System.Configuration.ConfigurationManager.AppSettings["XmlSessionsFile"]);
         }
-
-
 
         /// <summary>
         /// Load Sessions.xml which contains all information about the registered sessions and related videos.
@@ -256,59 +342,10 @@ namespace Sessions
 
                 foreach (XmlNode node in nodeList)
                 {
-                    SessionModel s = new SessionModel();
-                    s.SessionId = Int32.Parse(node.Attributes["Id"].Value);
-                    s.SessionName = node.Attributes["Name"].Value;
-                    s.SessionDate = node.Attributes["Date"].Value;
-                    s.Modality = node.Attributes["Modality"].Value;
-                    s.SessionType = node.Attributes["Type"].Value;
-                    s.VideoList = new ObservableCollection<VideoModel>();
-
-                    foreach (XmlNode child in node)
-                    {
-                        // Has to check if child is not Calibration
-                        if (child.Name == "Video")
-                        {
-                            VideoModel video = new VideoModel();
-
-                            video.Sequence = Int32.Parse(child.Attributes["Sequence"].Value);
-                            video.Power = Int32.Parse(child.Attributes["Power"].Value);
-
-                            if (child.Attributes["Calibration"].Value == "True")
-                            {
-                                video.IsCalibration = true;
-                            }
-                            else
-                            {
-                                video.IsCalibration = false;
-                            }
-
-                            video.Filename = child.InnerText;
-
-                            s.VideoList.Add(video);
-                        } else if(child.Name == "Calibration")
-                        {
-                            if(s.Calibration == null)
-                            {
-                                s.Calibration = new CalibrationModel();
-                            }
-                            s.Calibration.CalSessionId = s.SessionId;
-                            s.Calibration.NumFrames = Int32.Parse(child.Attributes["NumFrames"].Value);
-                            s.Calibration.JointType = (JointType) Int32.Parse(child.Attributes["JointType"].Value);
-
-                            float x, y, z;
-                            x = float.Parse(child.Attributes["X"].Value);
-                            y = float.Parse(child.Attributes["Y"].Value);
-                            z = float.Parse(child.Attributes["Z"].Value);
-
-                            s.Calibration.Position = new Vector3(x, y, z);
-                        }
-                    }
-                    _allSessions.Add(s);
+                    _allSessions.Add(LoadSession(node));
                 }
                 _loaded = true;
             }
-
         }
 
         /// <summary>
@@ -379,6 +416,19 @@ namespace Sessions
                     vNode.InnerText = video.Filename;
                     xNode.AppendChild(vNode);
                     sequence++;
+                }
+
+                if(_session.Calibration != null && _session.Calibration.CalSessionId > 0)
+                {
+                    XmlNode cNode = _xmlSessionDoc.CreateNode(XmlNodeType.Element, "Calibration", "");
+
+                    CreateAttribute(cNode, "NumFrames", _session.Calibration.NumFrames.ToString());
+                    int j = (int)_session.Calibration.JointType;
+                    CreateAttribute(cNode, "JointType", j.ToString());
+                    CreateAttribute(cNode, "X", _session.Calibration.Position.X.ToString());
+                    CreateAttribute(cNode, "Y", _session.Calibration.Position.Y.ToString());
+                    CreateAttribute(cNode, "Z", _session.Calibration.Position.Z.ToString());
+                    xNode.AppendChild(cNode);
                 }
 
                 if (Operation == "Create" || Operation == "Edit") _xmlSessionDoc.LastChild.AppendChild(xNode);

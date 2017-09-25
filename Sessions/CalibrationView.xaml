@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sessions"
              mc:Ignorable="d" 
-             d:DesignHeight="250" d:DesignWidth="250">
+             d:DesignHeight="550" d:DesignWidth="950"
+             Loaded="UserControl_Loaded">
     
     <UserControl.Resources>
         <Style TargetType="{x:Type Control}" x:Key="baseStyle" >
@@ -22,10 +23,10 @@
     <Border BorderBrush="Black" BorderThickness="2" Padding="20">
         <Grid Background="DodgerBlue">
             <Grid.RowDefinitions>
-                <RowDefinition Height="5*"/>
-                <RowDefinition Height="3*"/>
-                <RowDefinition Height="3*"/>
-                <RowDefinition Height="3*" />
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="4*" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
@@ -33,36 +34,42 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Label Content="Select one joint for calibration" />
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" >
+                <Label Content="{Binding Path=SelectedName}" Foreground="Beige"   HorizontalAlignment="Left" />
+                
+                <Label Margin="20,50,0,0" Content="Select one joint for calibration" />
 
-                <ComboBox x:Name="lbJointNames" Margin="0,0,0,10" Width="150" ItemsSource="{Binding Path=JointTypes}"
+                <ComboBox x:Name="lbJointNames" Margin="10,50,0,10" Width="150" Height="40" VerticalAlignment="Top"
+                          ItemsSource="{Binding Path=JointTypes}"
                           IsSynchronizedWithCurrentItem="True" Visibility="Visible"  SelectedIndex="{Binding Path=SelectedJointIndex}"
                           SelectionChanged="lbJointNames_SelectionChanged"/>
             </StackPanel>
 
-            <StackPanel HorizontalAlignment="Center" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center">
-                <Label Content="Number of Frames" />
-                <TextBox Margin="5,10,5,15" Width="80" Text="{Binding Path=NumFrames}" x:Name="txNumFrames" />
-                <Button Margin="0,10,0,10" Content="Run" Width="60" Command="{Binding Path=RunCommand}"/>
+            <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Orientation="Horizontal">
+                <Label Margin="0,50,0,15"  Content="Number of Frames" />
+                <TextBox Margin="10,50,5,15" Width="80" Text="{Binding Path=NumFrames}" x:Name="txNumFrames" />
+                <Button Margin="80,50,0,10" Content="Run" Width="100" Command="{Binding Path=RunCommand}" 
+                        Name="btRun" Click="btRun_Click"/>
             </StackPanel>
 
-            <Label Grid.Row="1" Grid.Column="0" Content="{Binding Path=CalibrationStatus}"  
+            <Label Grid.Row="1" Grid.Column="0"  HorizontalAlignment="Center" Content="Calibration Result (X, Y, Z)"  />
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.X}" Margin="10,10,5,10" IsEnabled="False" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Y}" Margin="5,10,5,10" IsEnabled="False" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Z}" Margin="5,10,5,10" IsEnabled="False" />
+
+                <Button Content="Save" Width="100" Margin="30,3,5,3" Height="40" x:Name="btSave"
+                    Command="{Binding Path=SaveCalibrationCommand}" Click="btSave_Click" />
+            </StackPanel>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="{Binding Path=CalibrationStatus}" Name="lbCalStatus"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Height="30" Width="150" Margin="5,10,10,10"  
+            
+                <TextBox Grid.Row="2" Grid.Column="1" Height="30" Width="150" Margin="5,10,10,10"  
                      VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="txCalStatus" IsEnabled="False"
                      Text="{Binding Path=ProcessedFrames}" TextChanged="txCalStatus_TextChanged" 
                      BorderThickness="0" Background="DodgerBlue"   />
 
-            <Label Grid.Row="2" Grid.Column="0"  HorizontalAlignment="Center" Content="Calibration Result (X, Y, Z)"  />
-            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.X}" Margin="10,10,5,10" IsEnabled="False" />
-                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Y}" Margin="5,10,5,10" IsEnabled="False" />
-                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Z}" Margin="5,10,5,10" IsEnabled="False" />
-            </StackPanel>
-
-            <Button Grid.Row="3" Grid.ColumnSpan="2" Content="Save" Width="100" Margin="0,3,5,3" Height="60"
-                    Command="{Binding Path=SaveCalibrationCommand}" x:Name="btSave" />
         </Grid>
     </Border>
 </UserControl>
