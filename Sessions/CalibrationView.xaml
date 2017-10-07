@@ -24,9 +24,13 @@
         <Grid Background="DodgerBlue">
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
-                <RowDefinition Height="2*"/>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="4*" />
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1.5*"/>
+                <RowDefinition Height="1*" />
             </Grid.RowDefinitions>
 
             <Grid.ColumnDefinitions>
@@ -37,7 +41,7 @@
             <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" >
                 <Label Content="{Binding Path=SelectedName}" Foreground="Beige"   HorizontalAlignment="Left" />
                 
-                <Label Margin="20,50,0,0" Content="Select one joint for calibration" />
+                <Label Margin="20,50,0,0" Content="Select Joint for calibration" />
 
                 <ComboBox x:Name="lbJointNames" Margin="10,50,0,10" Width="150" Height="40" VerticalAlignment="Top"
                           ItemsSource="{Binding Path=JointTypes}"
@@ -52,8 +56,20 @@
                         Name="btRun" Click="btRun_Click"/>
             </StackPanel>
 
-            <Label Grid.Row="1" Grid.Column="0"  HorizontalAlignment="Center" Content="Calibration Result (X, Y, Z)"  />
-            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Label Grid.Row="1" Grid.Column="0" Content="Initial time" HorizontalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Width="120" Height="30" Text="{Binding Path=InitialTime}" 
+                     Margin="20,10,5,10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Label Margin="160,10,0,0" Grid.Row="1" Grid.Column="1" Content="ms" />
+
+            <Label Grid.Row="2" Grid.Column="0" Content="Joint estimated position (X, Y, Z)" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationEstimated.X}" Margin="10,10,5,10" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationEstimated.Y}" Margin="5,10,5,10" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationEstimated.Z}" Margin="5,10,5,10" />
+            </StackPanel>
+
+            <Label Grid.Row="3" Grid.Column="0"  HorizontalAlignment="Center" Content="Calibration Result (X, Y, Z)"  />
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.X}" Margin="10,10,5,10" IsEnabled="False" />
                 <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Y}" Margin="5,10,5,10" IsEnabled="False" />
                 <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationResult.Z}" Margin="5,10,5,10" IsEnabled="False" />
@@ -62,14 +78,53 @@
                     Command="{Binding Path=SaveCalibrationCommand}" Click="btSave_Click" />
             </StackPanel>
 
-                <Label Grid.Row="2" Grid.Column="0" Content="{Binding Path=CalibrationStatus}" Name="lbCalStatus"
+            <Label Grid.Row="4" Grid.Column="0"  HorizontalAlignment="Center" Content="Standard Deviation (X, Y, Z)"  />
+            <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationSD.X}" Margin="10,10,5,10" IsEnabled="False" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationSD.Y}" Margin="5,10,5,10" IsEnabled="False" />
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationSD.Z}" Margin="5,10,5,10" IsEnabled="False" />
+            </StackPanel>
+
+            <Label Grid.Row="5" Grid.Column="0" Content="Thresholds (X, Y, Z)" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationThreshold.X}" Margin="10,10,5,10" TextChanged="TextBox_TextChanged"/>
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationThreshold.Y}" Margin="5,10,5,10" TextChanged="TextBox_TextChanged"/>
+                <TextBox Width="90" Height="30" Text="{Binding Path=CalibrationThreshold.Z}" Margin="5,10,5,10" TextChanged="TextBox_TextChanged"/>
+            </StackPanel>
+
+            <Grid Grid.Row="6" Grid.ColumnSpan="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.8*"/>
+                    <RowDefinition Height="0.8*" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                
+                <Label Grid.Row="0" Content="Lengths (m)" HorizontalAlignment="Center" />
+                <Label Grid.Row="0" Grid.Column="1" Content="Right Thigh" HorizontalAlignment="Center"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="Right Shank" HorizontalAlignment="Center"/>
+                <Label Grid.Row="0" Grid.Column="3" Content="Left Thigh" HorizontalAlignment="Center"/>
+                <Label Grid.Row="0" Grid.Column="4" Content="Left Shank" HorizontalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Width="90" Height="28" Text="{Binding Path=RightThighLength}" IsEnabled="False" />
+                <TextBox Grid.Row="1" Grid.Column="2" Width="90" Height="28" Text="{Binding Path=RightShankLength}" IsEnabled="False" />
+                <TextBox Grid.Row="1" Grid.Column="3" Width="90" Height="28" Text="{Binding Path=LeftThighLength}" IsEnabled="False" />
+                <TextBox Grid.Row="1" Grid.Column="4" Width="90" Height="28" Text="{Binding Path=LeftShankLength}" IsEnabled="False" />
+            </Grid>
+                
+                
+            <Label Grid.Row="7" Grid.Column="0" Content="{Binding Path=CalibrationStatus}" Name="lbCalStatus"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            
-                <TextBox Grid.Row="2" Grid.Column="1" Height="30" Width="150" Margin="5,10,10,10"  
+
+            <TextBox Grid.Row="7" Grid.Column="1" Height="30" Width="150" Margin="5,10,10,10"  
                      VerticalAlignment="Center" HorizontalAlignment="Left" x:Name="txCalStatus" IsEnabled="False"
                      Text="{Binding Path=ProcessedFrames}" TextChanged="txCalStatus_TextChanged" 
                      BorderThickness="0" Background="DodgerBlue"   />
-
         </Grid>
     </Border>
 </UserControl>

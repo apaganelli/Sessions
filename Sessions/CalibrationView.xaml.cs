@@ -62,5 +62,17 @@ namespace Sessions
             lbCalStatus.Visibility = Visibility.Hidden;
             txCalStatus.Visibility = Visibility.Hidden;
         }
+
+
+        /// <summary>
+        /// Any threshold has changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            context = (CalibrationViewModel)DataContext;
+            context.CalibrationChanged = true;
+        }
     }
 }

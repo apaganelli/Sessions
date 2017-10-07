@@ -15,8 +15,6 @@ using System.Windows.Input;
 using System.Windows;
 using System.Xml;
 
-
-
 namespace Sessions
 {
     /// <summary>
@@ -38,15 +36,35 @@ namespace Sessions
         private int _selectedId = 0;                            // Selected session ID for running got from _app
         private string _selectedName;
         private int _numFrames = 0;
-        private string _selectedJoint = null;
+        private string _selectedJoint = "";
         private int _selectedJointIndex = 0;
 
-        private Vector3 _calibrationResult;
-        JointType _jointType = JointType.SpineBase;
-        private int _processedFrames = 0;
+        // Gets the average position of the selected joint.
+        private Vector3 _calibrationResult;                     
+
+        // Setup the threshold to accept the observed selected joint during analysis. Not used for calibartion.
+        private Vector3 _calibrationThreshold = new Vector3(0, 0, 0);
+        
+        JointType _jointType = JointType.SpineBase;             // Selected joint type, default: Spine base.
+        private int _processedFrames = 0;                       // Keeps track of the processed frames from the Kinect stream.
         private string _calibrationStatus = "Configuring ...";
+        private Vector3 _calibrationSD = new Vector3(0, 0, 0);  // Standard deviation of calibration result.
+        private Vector3 _calibrationEstimated = new Vector3(0, 0, 0);   // Estimated position of the selected joint.
+        private Int64 _initialTime = 0;                         // Initial time to start the playback of the clip.
+
+        // These variables hold the observed average lengths of the tracked body segments. 
+        // It is the Euclidean distance of the body joints captured when both joints were tracked by Kinect sensors. 
+        // Since we have the actual segment length measured manually,
+        // this information may be used to calibrate/correct not tracked or inferred frames during analysis.
+        private double _rightThighLength;
+        private double _rightShankLength;
+        private double _leftThighLength;
+        private double _leftShankLength;
 
         private SessionViewModel _sessionVM = null;
+
+        private bool _changed;                        // Controls if any UI field was modified and needs to be saved.
+
 
         /// <summary>
         /// Pointer to xml sessions data file.
@@ -77,11 +95,24 @@ namespace Sessions
             _jointTypes.Add("Head");
 
             LoadCalibrationData(false);
+            _changed = false;
         }
 
         #endregion // Constructor
 
         #region Properties
+        public bool CalibrationChanged
+        {
+            get { return _changed; }
+            set
+            {
+                if(value != _changed)
+                {
+                    _changed = value;
+                }
+            }
+        }
+
         public string Name
         {
             get { return "CalibrationModel"; }
@@ -147,6 +178,19 @@ namespace Sessions
             }
         }
 
+        public Int64 InitialTime
+        {
+            get { return _initialTime; }
+            set
+            {
+                if(value != _initialTime)
+                {
+                    _initialTime = value;
+                    OnPropertyChanged("InitialTime");
+                }
+            }
+        }
+
         public Vector3 CalibrationResult
         {
             get { return _calibrationResult; }
@@ -160,6 +204,57 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets standard deviation of calibration result
+        /// </summary>
+        public Vector3 CalibrationSD
+        {
+            get { return _calibrationSD; }
+            set
+            {
+                if(value != _calibrationSD)
+                {
+                    _calibrationSD = value;
+                    OnPropertyChanged("CalibrationSD");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets/sets Threshold values.
+        /// </summary>
+        public Vector3 CalibrationThreshold
+        {
+            get { return _calibrationThreshold; }
+            set
+            {
+                if(value != _calibrationThreshold)
+                {
+                    _calibrationThreshold = value;
+                    OnPropertyChanged("CalibrationThreshold");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets/sets Threshold values.
+        /// </summary>
+        public Vector3 CalibrationEstimated
+        {
+            get { return _calibrationEstimated; }
+            set
+            {
+                if (value != _calibrationEstimated)
+                {
+                    _calibrationEstimated = value;
+                    OnPropertyChanged("CalibrationEstimated");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets/sets calibration status text.
+        /// </summary>
         public string CalibrationStatus
         {
             get { return _calibrationStatus; }
@@ -173,6 +268,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets selected session name.
+        /// </summary>
         public string SelectedName
         {
             get { return _selectedName; }
@@ -186,6 +284,58 @@ namespace Sessions
             }
         }
 
+        public double RightThighLength
+        {
+            get { return Math.Round(_rightThighLength, 3); }
+            set
+            {
+                if(value != _rightThighLength)
+                {
+                    _rightThighLength = value;
+                    OnPropertyChanged("RightThighLength");
+                }
+            }
+        }
+
+        public double RightShankLength
+        {
+            get { return Math.Round(_rightShankLength, 3); }
+            set
+            {
+                if (value != _rightShankLength)
+                {
+                    _rightShankLength = value;
+                    OnPropertyChanged("RightShankLength");
+                }
+            }
+        }
+
+        public double LeftThighLength
+        {
+            get { return Math.Round(_leftThighLength, 3); }
+            set
+            {
+                if (value != _leftThighLength)
+                {
+                    _leftThighLength = value;
+                    OnPropertyChanged("LeftThighLength");
+                }
+            }
+        }
+
+
+        public double LeftShankLength
+        {
+            get { return Math.Round(_leftShankLength, 3); }
+            set
+            {
+                if (value != _leftShankLength)
+                {
+                    _leftShankLength = value;
+                    OnPropertyChanged("LeftShankLength");
+                }
+            }
+        }
 
         /// <summary>
         /// Load calibration data of the selected ID. (if a calibration had already been performed.)
@@ -241,6 +391,14 @@ namespace Sessions
                         _jointType = _session.Calibration.JointType;
                         NumFrames = _session.Calibration.NumFrames;
                         CalibrationResult = _session.Calibration.Position;
+                        CalibrationThreshold = _session.Calibration.Threshold;
+                        CalibrationSD = _session.Calibration.SD;
+                        InitialTime = _session.Calibration.InitialTime;
+                        CalibrationEstimated = _session.Calibration.Estimated;
+                        RightShankLength = _session.Calibration.RightShankLength;
+                        RightThighLength = _session.Calibration.RightThighLength;
+                        LeftShankLength = _session.Calibration.LeftShankLength;
+                        LeftThighLength = _session.Calibration.LeftThighLength;
                         ConvertSelectedJointIndex();
                         _app.SessionsViewModel.CurrentSession = _session;
                     }                    
@@ -252,6 +410,14 @@ namespace Sessions
                 CalibrationStatus = "Configuring ....";
                 ProcessedFrames = 0;
                 CalibrationResult = new Vector3(0, 0, 0);
+                CalibrationSD = new Vector3(0, 0, 0);
+                CalibrationThreshold = new Vector3(0, 0, 0);
+                CalibrationEstimated = new Vector3(0, 0, 0);
+                RightThighLength = 0;
+                RightShankLength = 0;
+                LeftThighLength = 0;
+                LeftShankLength = 0;
+                InitialTime = 0;
                 SelectedJointIndex = 0;
                 NumFrames = 0;
             }
@@ -282,13 +448,12 @@ namespace Sessions
                 if (_saveCalibrationCommand == null)
                 {
                     _saveCalibrationCommand = new RelayCommand(param => SaveCalibration(),
-                        param => (NumFrames > 0 && ProcessedFrames >= NumFrames));
+                        param => (CalibrationChanged));
                 }
                 return _saveCalibrationCommand;
             }
         }
         #endregion // Properties
-
 
         private void ConvertSelectedJointIndex()
         {
@@ -319,6 +484,9 @@ namespace Sessions
         {
             switch (SelectedJoint)
             {
+                case "SpineBase":
+                    _jointType = JointType.SpineBase;
+                    break;
                 case "SpineMid":
                     _jointType = JointType.SpineMid;
                     break;
@@ -345,7 +513,15 @@ namespace Sessions
             calibration.JointType = _jointType;
             calibration.NumFrames = NumFrames;
             calibration.Position = CalibrationResult;
-
+            calibration.SD = CalibrationSD;
+            calibration.Threshold = CalibrationThreshold;
+            calibration.InitialTime = InitialTime;
+            calibration.Estimated = CalibrationEstimated;
+            calibration.LeftShankLength = LeftShankLength;
+            calibration.LeftThighLength = LeftThighLength;
+            calibration.RightShankLength = RightShankLength;
+            calibration.RightThighLength = RightThighLength;
+           
             // Session is a member of SessionViewModel class. It was linked during constructor´s call
             // to LoadCalibration data.
             _sessionVM.SaveCalibrationData(xNode, calibration);
@@ -387,8 +563,9 @@ namespace Sessions
                 // Convert UI selected joint (string) to JointType (Enum - Kinect) and store it in _jointType.
                 ConvertSelectedJoint();
 
+                CalibrationChanged = true;
                 SessionCalibrationKinect runVideo = null;
-                runVideo = new SessionCalibrationKinect(this, filename, NumFrames, _jointType);
+                runVideo = new SessionCalibrationKinect(this, filename, NumFrames, _jointType, InitialTime, CalibrationEstimated);
             }
             else
             {

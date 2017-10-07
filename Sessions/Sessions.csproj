@@ -87,11 +87,17 @@
       <DependentUpon>CalibrationView.xaml</DependentUpon>
     </Compile>
     <Compile Include="CalibrationViewModel.cs" />
-    <Compile Include="ExecutionViewModel.cs" />
+    <Compile Include="AnalysisViewModel.cs" />
+    <Compile Include="FilterARMA.cs" />
+    <Compile Include="KinectJointFilter.cs" />
     <Compile Include="PositionsView.xaml.cs">
       <DependentUpon>PositionsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="RelayCommand.cs" />
+    <Compile Include="ResultsView.xaml.cs">
+      <DependentUpon>ResultsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ResultsViewModel.cs" />
     <Compile Include="SessionAnalysisKinect.cs" />
     <Compile Include="SessionCalibrationKinect.cs" />
     <Compile Include="SessionModel.cs" />
@@ -100,6 +106,7 @@
       <DependentUpon>SessionsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="SessionsViewModel.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="Vector3.cs" />
     <Compile Include="VideoInputDialog.xaml.cs">
       <DependentUpon>VideoInputDialog.xaml</DependentUpon>
@@ -147,6 +154,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PositionsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ResultsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

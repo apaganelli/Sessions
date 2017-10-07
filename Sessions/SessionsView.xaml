@@ -26,6 +26,8 @@
                         <RowDefinition Height="1*" />
                         <RowDefinition Height="1*" />
                         <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
                         <RowDefinition Height="6*" />
                         <RowDefinition Height="1*" />
                         <RowDefinition Height="1*" />
@@ -42,15 +44,23 @@
                     <TextBox Grid.Row="2" Grid.Column="1"  Text="{Binding Path=SessionDate}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Modality" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="3" Grid.Column="1"  Text="{Binding Path=Modality}" Width="200" Height="22"
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Thigh Length" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="3" Grid.Column="1"  Text="{Binding Path=ThighLength}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Type" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="4" Grid.Column="1"  Text="{Binding Path=SessionType}" Width="200" Height="22"
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shank Length" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="4" Grid.Column="1"  Text="{Binding Path=ShankLength}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
-                    <Grid Grid.Row="5" Grid.ColumnSpan="2">
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Modality" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="5" Grid.Column="1"  Text="{Binding Path=Modality}" Width="200" Height="22"
+                             HorizontalAlignment="Left" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Type" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="6" Grid.Column="1"  Text="{Binding Path=SessionType}" Width="200" Height="22"
+                             HorizontalAlignment="Left" />
+
+                    <Grid Grid.Row="7" Grid.ColumnSpan="2">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="3*" />
                             <RowDefinition Height="1*" />
@@ -87,10 +97,10 @@
                              HorizontalAlignment="Left" IsEnabled="False" />
                     </Grid>
 
-                    <Button Grid.Row="6" Grid.Column="0" Width="80" Content="{Binding Path=ButtonText}" x:Name="btSave" 
+                    <Button Grid.Row="8" Grid.Column="0" Width="80" Content="{Binding Path=ButtonText}" x:Name="btSave" 
                             HorizontalAlignment="Left" Command="{Binding SaveSessionCommand}" Loaded="btSave_Loaded"  />
                     
-                    <Button Grid.Row="6" Grid.Column="1" Width="80" Content="Cancel" Command="{Binding CancelSessionCommand}"
+                    <Button Grid.Row="8" Grid.Column="1" Width="80" Content="Cancel" Command="{Binding CancelSessionCommand}"
                             HorizontalAlignment="Left" />
                 </Grid>
             </Border>
@@ -144,6 +154,8 @@
                         <RowDefinition Height="1*" />
                         <RowDefinition Height="1*" />
                         <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
                         <RowDefinition Height="2*"/>
                         <RowDefinition Height="1*" />
                     </Grid.RowDefinitions>
@@ -161,25 +173,31 @@
                     <Label Grid.Row="1" Grid.Column="0" Content="Date" />
                     <Label Grid.Row="1" Grid.Column="1"  Content="{Binding XPath=@Date}" />
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="Modality" />
-                    <Label Grid.Row="2" Grid.Column="1"  Content="{Binding XPath=@Modality}" />
+                    <Label Grid.Row="2" Grid.Column="0" Content="Thigh length" />
+                    <Label Grid.Row="2" Grid.Column="1"  Content="{Binding XPath=@Thigh}" />
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="Type" />
-                    <Label Grid.Row="3" Grid.Column="1"  Content="{Binding XPath=@Type}" />
+                    <Label Grid.Row="3" Grid.Column="0" Content="Shank length" />
+                    <Label Grid.Row="3" Grid.Column="1"  Content="{Binding XPath=@Shank}" />
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Video List" />
-                    <ComboBox x:Name="VideoList" Margin="0,0,8,20" Grid.Row="4" Grid.Column="1"
+                    <Label Grid.Row="4" Grid.Column="0" Content="Modality" />
+                    <Label Grid.Row="4" Grid.Column="1"  Content="{Binding XPath=@Modality}" />
+
+                    <Label Grid.Row="5" Grid.Column="0" Content="Type" />
+                    <Label Grid.Row="5" Grid.Column="1"  Content="{Binding XPath=@Type}" />
+
+                    <Label Grid.Row="6" Grid.Column="0" Content="Video List" />
+                    <ComboBox x:Name="VideoList" Margin="0,0,8,20" Grid.Row="6" Grid.Column="1"
                     ItemsSource="{Binding XPath=Video}" ItemTemplate="{StaticResource videoItemTemplate }"
                     ScrollViewer.HorizontalScrollBarVisibility="Visible"          
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     IsSynchronizedWithCurrentItem="True" Visibility="Visible" />
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="Video Power" />
-                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal">
-                        <Label Grid.Row="5" Grid.Column="1" DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
+                    <Label Grid.Row="7" Grid.Column="0" Content="Video Power" />
+                    <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal">
+                        <Label DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
                                Content="{Binding XPath=@Power}" Margin="5,0,40,0"/>
 
-                        <CheckBox Grid.Row="5" Grid.Column="2" DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
+                        <CheckBox DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
                              Content="Calibration" IsChecked="{Binding XPath=@Calibration}" IsEnabled="False" 
                                   Margin="0,10"/>
                     </StackPanel>

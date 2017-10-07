@@ -21,10 +21,14 @@
             <local:CalibrationView />
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type local:ExecutionViewModel}">
+        <DataTemplate DataType="{x:Type local:AnalysisViewModel}">
             <local:PositionsView />
         </DataTemplate>
-        
+
+        <DataTemplate DataType="{x:Type local:ResultsViewModel}">
+            <local:ResultsView />
+        </DataTemplate>
+
     </Window.Resources>
     <TabControl SelectionChanged="TabControl_SelectionChanged">
         <TabItem Header="Sessions" x:Name="TabItemSessions">
@@ -38,6 +42,10 @@
         <TabItem Header="Execution" x:Name="TabItemExecution">
             <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
         </TabItem>
-        
+
+        <TabItem Header="Results" x:Name="TabItemResults">
+            <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+        </TabItem>
+
     </TabControl>
 </Window>

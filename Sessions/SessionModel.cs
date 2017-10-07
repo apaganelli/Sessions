@@ -17,6 +17,8 @@ namespace Sessions
         #region Fields 
         private int _sessionId;
         private string _sessionName;
+        private double _thighLength;
+        private double _shankLength;
         private string _sessionDate;
         private string _modality;
         private string _sessionType;
@@ -118,6 +120,31 @@ namespace Sessions
             }
         }
 
-        # endregion // Properties
+        public double ThighLength
+        {
+            get { return _thighLength; }
+            set
+            {
+                if(value != _thighLength)
+                {
+                    _thighLength = value;
+                    OnPropertyChanged("ThighLength");
+                }
+            }
+        }
+
+        public double ShankLength
+        {
+            get { return _shankLength; }
+            set
+            {
+                if (value != _shankLength)
+                {
+                    _shankLength = value;
+                    OnPropertyChanged("ShankLength");
+                }
+            }
+        }
+            #endregion // Properties
+        }
     }
-}

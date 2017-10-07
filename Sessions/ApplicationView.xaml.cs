@@ -19,11 +19,9 @@ namespace Sessions
     /// </summary>
     public partial class ApplicationView : Window
     {
-        private bool firstCalibrationPage = true;
-        private bool firstExecutionPage = true;
-
         private CalibrationViewModel calViewModel = null;
-        private ExecutionViewModel exeViewModel = null;
+        private AnalysisViewModel exeViewModel = null;
+        private ResultsViewModel resultViewModel = null;
 
         public ApplicationView()
         {
@@ -46,24 +44,32 @@ namespace Sessions
 
                 if (TabItemCalibration.IsSelected)
                 {
-                    if (firstCalibrationPage)
+                    if (calViewModel == null)
                     {
                         calViewModel = new CalibrationViewModel(app);
-                        firstCalibrationPage = false;
                     }
 
                     calViewModel.LoadCalibrationData(false);
                     app.CurrentPageViewModel = calViewModel;
-                } else if(TabItemExecution.IsSelected)
-                { 
-                    if(firstExecutionPage)
+                }
+                else if (TabItemExecution.IsSelected)
+                {
+                    if (exeViewModel == null)
                     {
-                        exeViewModel = new ExecutionViewModel(app);
-                        firstExecutionPage = false;
+                        exeViewModel = new AnalysisViewModel(app);
                     }
 
                     exeViewModel.LoadExecutionModel();
                     app.CurrentPageViewModel = exeViewModel;
+                } else if (TabItemResults.IsSelected)
+                {
+                    if(resultViewModel == null)
+                    {
+                        resultViewModel = new ResultsViewModel(app);
+                    }
+
+                    resultViewModel.LoadResultViewModel();
+                    app.CurrentPageViewModel = resultViewModel;
                 } else if(TabItemSessions.IsSelected)
                 {
                     // This is the first and default page.

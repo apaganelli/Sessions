@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 
+using Microsoft.Kinect;
+
+
 namespace Sessions
 {
     /// <summary>
@@ -19,7 +22,7 @@ namespace Sessions
     /// Calibration data is recommended to be used, then calibration process should have had been performed.
     /// 
     /// </summary>
-    class ExecutionViewModel : ObservableObject, IPageViewModel
+    class AnalysisViewModel : ObservableObject, IPageViewModel
     {
         private ApplicationViewModel _app = null;
 
@@ -29,6 +32,7 @@ namespace Sessions
 
         private Canvas _canvasSkeleton;
         private Canvas _canvasImage;
+        private Canvas _filteredCanvas;
 
         private string _executionStatus;
 
@@ -40,11 +44,24 @@ namespace Sessions
         private Vector3 _kneeLeftPosition;
         private Vector3 _ankleLeftPosition;
 
+        private Vector3 _calibrationJoint;
+
+        private double _leftThighLength;
+        private double _leftShankLength;
+        private double _rightThighLength;
+        private double _rightShankLength;
+
+        private Int64 _numFrames = 0;
+        private Int64 _notTracked = 0;
+        private Int64 _tracked = 0;
+
         private string _selectedName;
         private bool _hasCalibration;
         private bool _play = false;
 
         private SessionAnalysisKinect _analysis;
+
+        private List<CameraSpacePoint[]> _records;
 
         private ICommand _startCommand;
         private ICommand _stopCommand;
@@ -54,7 +71,7 @@ namespace Sessions
         /// Controls exercise test process online or offline.
         /// </summary>
         /// <param name="app">Pointer to application controller and interface to access other modules</param>
-        public ExecutionViewModel(ApplicationViewModel app) 
+        public AnalysisViewModel(ApplicationViewModel app) 
         {
             _app = app;
             LoadExecutionModel();
@@ -96,6 +113,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Status bar for giving feedback to user.
+        /// </summary>
         public string ExecutionStatus
         {
             get { return _executionStatus; }
@@ -109,6 +129,72 @@ namespace Sessions
             }
         }
 
+        public double LeftThighLength
+        {
+            get { return _leftThighLength; }
+            set
+            {
+                if(value != _leftThighLength)
+                {
+                    _leftThighLength = value;
+                    OnPropertyChanged("LeftThighLength");
+                }
+            }
+        }
+
+        public double RightThighLength
+        {
+            get { return _rightThighLength; }
+            set
+            {
+                if (value != _rightThighLength)
+                {
+                    _rightThighLength = value;
+                    OnPropertyChanged("RightThighLength");
+                }
+            }
+        }
+
+        public double LeftShankLength
+        {
+            get { return _leftShankLength; }
+            set
+            {
+                if (value != _leftShankLength)
+                {
+                    _leftShankLength = value;
+                    OnPropertyChanged("LeftShankLength");
+                }
+            }
+        }
+
+        public double RightShankLength
+        {
+            get { return _rightShankLength; }
+            set
+            {
+                if (value != _rightShankLength)
+                {
+                    _rightShankLength = value;
+                    OnPropertyChanged("RightShankLength");
+                }
+            }
+        }
+
+        public List<CameraSpacePoint[]> Records
+        {
+            get { return _records; }
+            set {
+                if(value != _records)
+                {
+                    _records = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Relay command to start video playback.
+        /// </summary>
         public ICommand StartCommand
         {
             get
@@ -123,6 +209,9 @@ namespace Sessions
 
         }
 
+        /// <summary>
+        /// Relay command to stop video playback
+        /// </summary>
         public ICommand StopCommand
         {
             get
@@ -135,6 +224,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Pointer to the UI canvas where the skeleton will be shown.
+        /// </summary>
         public Canvas CanvasSkeleton
         {
             get { return _canvasSkeleton; }
@@ -148,6 +240,25 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets Filtered canvas used for showing filtered skeleton.
+        /// </summary>
+        public Canvas FilteredCanvas
+        {
+            get { return _filteredCanvas; }
+            set
+            {
+                if (value != _filteredCanvas)
+                {
+                    _filteredCanvas = value;
+                    OnPropertyChanged("FilteredCanvas");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Pointer to the UI canvas where video images will appear.
+        /// </summary>
         public Canvas CanvasImage
         {
             get { return _canvasImage; }
@@ -161,6 +272,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds X,Y,Z position of the right hip.
+        /// </summary>
         public Vector3 HipRightPosition
         {
             get { return _hipRightPosition; }
@@ -174,6 +288,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds, X,Y,Z position of the right knee.
+        /// </summary>
         public Vector3 KneeRightPosition
         {
             get { return _kneeRightPosition; }
@@ -187,6 +304,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds, X,Y,Z position of the right ankle.
+        /// </summary>
         public Vector3 AnkleRightPosition
         {
             get { return _ankleRightPosition; }
@@ -200,6 +320,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds X,Y,Z position of the left hip.
+        /// </summary>
         public Vector3 HipLeftPosition
         {
             get { return _hipLeftPosition; }
@@ -213,6 +336,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds, X,Y,Z position of the left knee.
+        /// </summary>
         public Vector3 KneeLeftPosition
         {
             get { return _kneeLeftPosition; }
@@ -226,6 +352,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Holds, X,Y,Z position of the left ankle.
+        /// </summary>
         public Vector3 AnkleLeftPosition
         {
             get { return _ankleLeftPosition; }
@@ -239,46 +368,125 @@ namespace Sessions
             }
         }
 
+        public string JointName
+        {
+            get
+            {
+                if(HasCalibration && _session != null)
+                {
+                    return _session.Calibration.JointType.ToString();
+                }
+
+                return "None";
+            }
+        }
+
+        public Vector3 CalibrationJoint
+        {
+            get { return _calibrationJoint; }
+            set
+            {
+                if(value != _calibrationJoint)
+                {
+                    _calibrationJoint = value;
+                    OnPropertyChanged("CalibrationJoint");
+                }
+            }
+        }
+
+        public Int64 NumFrames
+        {
+            get { return _numFrames; } 
+            set
+            {
+                if(value != _numFrames)
+                {
+                    _numFrames = value;
+                    OnPropertyChanged("NumFrames");
+                }
+            }
+        }
+
+        public Int64 NotTracked
+        {
+            get { return _notTracked; }
+            set
+            {
+                if (value != _notTracked)
+                {
+                    _notTracked = value;
+                    OnPropertyChanged("NotTracked");
+                }
+            }
+        }
+
+        public Int64 Tracked
+        {
+            get { return _tracked; }
+            set
+            {
+                if (value != _tracked)
+                {
+                    _tracked = value;
+                    OnPropertyChanged("Tracked");
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Loads specific information of the selected session.
+        /// </summary>
         public void LoadExecutionModel()
         {
             _selectedId = _app.SessionsViewModel.SelectedSessionId;
 
+            // If there is a selected session, loads it, everytime the tab is selected.
             if (_selectedId > 0)
             {
-                if (_sessionVM == null || (_session != null && _selectedId != _session.SessionId))
-                {
-                    _sessionVM = new SessionViewModel(_selectedId);
-                    _session = _sessionVM.Session;
+                _sessionVM = new SessionViewModel(_selectedId);
+                _session = _sessionVM.Session;
 
-                    SelectedName = _session.SessionName;
-                    HasCalibration = _session.Calibration != null && _session.Calibration.Position != null ? true : false;
-
-                }
-            } else
+                SelectedName = _session.SessionName;
+                HasCalibration = _session.Calibration != null && _session.Calibration.Position != null ? true : false;
+            }
+            else
             {
                 SelectedName = "Selected name not defined.";
             }
+
+            Records = null;
+            Records = new List<CameraSpacePoint[]>();
         }
 
+        /// <summary>
+        /// Private function for executing kinect interface.
+        /// </summary>
         private void StartPlay()
         {
             if (_session != null)
             {
                 ExecutionStatus = "Starting analysis";
-                _analysis = new SessionAnalysisKinect(_session.VideoList, _session.Calibration, CanvasImage, CanvasSkeleton, this);
+                _analysis = new SessionAnalysisKinect(_session.VideoList, _session.Calibration, CanvasImage, 
+                                                      CanvasSkeleton, FilteredCanvas, this);
                 _play = _analysis.IsPlaying;
             }
         }
 
         private void StopPlay()
         {
-            if (_analysis != null && _analysis.IsPlaying)
+            int count = -1;
+
+            count = Records.Count;
+
+            if (_analysis != null)
             {
                 _analysis.Stop = true;
-                ExecutionStatus = "Stopped";
+                _analysis.CloseAll();
+                _analysis = null;
             }
+
+            ExecutionStatus = "Stopped";
         }
-
-
     }
 }

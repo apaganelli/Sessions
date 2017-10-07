@@ -153,10 +153,8 @@ namespace Sessions
         private void SelectSession()
         {
             SelectedSessionId = SessionId;
-            MessageBox.Show("Session ID: " + SessionId.ToString() + " Selected");
+            MessageBox.Show("Session ID: " + SessionId.ToString() + " Selected", "Selected", MessageBoxButton.OK);
         }
-
-
     }
 }
 

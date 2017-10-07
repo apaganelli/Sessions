@@ -99,6 +99,7 @@ namespace Sessions
             _session = LoadSession(xNode);
         }
 
+
         public string ButtonText
         {
             get { return _buttonText; }
@@ -138,6 +139,33 @@ namespace Sessions
                     _session.SessionDate = value;
                     OnPropertyChanged("SessionDate");
                 }
+
+            }
+        }
+
+        public double ThighLength
+        {
+            get { return _session.ThighLength; }
+            set
+            {
+                if(value != _session.ThighLength)
+                {
+                    _session.ThighLength = value;
+                    OnPropertyChanged("ThighLength");
+                }
+            }
+        }
+
+        public double ShankLength
+        {
+            get { return _session.ShankLength; }
+            set
+            {
+                if (value != _session.ShankLength)
+                {
+                    _session.ShankLength = value;
+                    OnPropertyChanged("ShankLength");
+                }
             }
         }
 
@@ -166,7 +194,6 @@ namespace Sessions
                 }
             }
         }
-
         public ObservableCollection<VideoModel> VideoList
         {
             get { return _session.VideoList; }
@@ -180,15 +207,22 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets calibration object.
+        /// </summary>
         public CalibrationModel Calibration
         {
             get { return _session.Calibration; }
         }
 
+        /// <summary>
+        /// Gets session object.
+        /// </summary>
         public SessionModel Session
         {
             get { return _session; }
         }
+
 
         public ICommand CancelSessionCommand
         {
@@ -243,6 +277,8 @@ namespace Sessions
             SessionModel s = new SessionModel();
             s.SessionId = Int32.Parse(node.Attributes["Id"].Value);
             s.SessionName = node.Attributes["Name"].Value;
+            s.ThighLength = Double.Parse(node.Attributes["Thigh"].Value);
+            s.ShankLength = Double.Parse(node.Attributes["Shank"].Value);
             s.SessionDate = node.Attributes["Date"].Value;
             s.Modality = node.Attributes["Modality"].Value;
             s.SessionType = node.Attributes["Type"].Value;
@@ -281,18 +317,48 @@ namespace Sessions
                     s.Calibration.NumFrames = Int32.Parse(child.Attributes["NumFrames"].Value);
                     s.Calibration.JointType = (JointType)Int32.Parse(child.Attributes["JointType"].Value);
 
+                    s.Calibration.InitialTime = Int64.Parse(child.Attributes["InitialTime"].Value);
+
+                    // Gets calibration information
                     float x, y, z;
                     x = float.Parse(child.Attributes["X"].Value);
                     y = float.Parse(child.Attributes["Y"].Value);
                     z = float.Parse(child.Attributes["Z"].Value);
-
                     s.Calibration.Position = new Vector3(x, y, z);
+
+                    // Gets threshold information
+                    x = float.Parse(child.Attributes["TX"].Value);
+                    y = float.Parse(child.Attributes["TY"].Value);
+                    z = float.Parse(child.Attributes["TZ"].Value);
+                    s.Calibration.Threshold = new Vector3(x, y, z);
+
+                    // Gets standard deviation information
+                    x = float.Parse(child.Attributes["SDX"].Value);
+                    y = float.Parse(child.Attributes["SDY"].Value);
+                    z = float.Parse(child.Attributes["SDZ"].Value);
+                    s.Calibration.SD = new Vector3(x, y, z);
+
+                    // Gets estimated initial joint position information
+                    x = float.Parse(child.Attributes["EX"].Value);
+                    y = float.Parse(child.Attributes["EY"].Value);
+                    z = float.Parse(child.Attributes["EZ"].Value);
+                    s.Calibration.Estimated = new Vector3(x, y, z);
+
+                    // Gets segments lengths
+                    s.Calibration.LeftShankLength = double.Parse(child.Attributes["LShank"].Value);
+                    s.Calibration.LeftThighLength = double.Parse(child.Attributes["LThigh"].Value);
+                    s.Calibration.RightShankLength = double.Parse(child.Attributes["RShank"].Value);
+                    s.Calibration.RightThighLength = double.Parse(child.Attributes["RThigh"].Value);
                 }
             }
-
             return s;
         }
 
+        /// <summary>
+        /// Saves calibration information into session XML file.
+        /// </summary>
+        /// <param name="node">Parent session node</param>
+        /// <param name="c">Calibration object that holds all calibration information to be stored</param>
         public void SaveCalibrationData(XmlNode node, CalibrationModel c)
         {
             XmlNode oldCalibration = node.SelectSingleNode("Calibration");
@@ -303,12 +369,7 @@ namespace Sessions
             }
 
             XmlNode vNode = _xmlSessionDoc.CreateNode(XmlNodeType.Element, "Calibration", "");
-            int j = (int) c.JointType;
-            CreateAttribute(vNode, "JointType", j.ToString());
-            CreateAttribute(vNode, "NumFrames", c.NumFrames.ToString());
-            CreateAttribute(vNode, "X", c.Position.X.ToString("0.00000"));
-            CreateAttribute(vNode, "Y", c.Position.Y.ToString("0.00000"));
-            CreateAttribute(vNode, "Z", c.Position.Z.ToString("0.00000"));
+            CreateCalibrationEntry(ref vNode, c);
             node.AppendChild(vNode);
 
             _xmlSessionDoc.Save(System.Configuration.ConfigurationManager.AppSettings["XmlSessionsFile"]);
@@ -389,6 +450,8 @@ namespace Sessions
 
                 CreateAttribute(xNode, "Id", _session.SessionId.ToString());
                 CreateAttribute(xNode, "Name", _session.SessionName);
+                CreateAttribute(xNode, "Thigh", _session.ThighLength.ToString("0.000"));
+                CreateAttribute(xNode, "Shank", _session.ShankLength.ToString("0.000"));
                 CreateAttribute(xNode, "Date", _session.SessionDate);
                 CreateAttribute(xNode, "Modality", _session.Modality);
                 CreateAttribute(xNode, "Type", _session.SessionType);
@@ -422,12 +485,7 @@ namespace Sessions
                 {
                     XmlNode cNode = _xmlSessionDoc.CreateNode(XmlNodeType.Element, "Calibration", "");
 
-                    CreateAttribute(cNode, "NumFrames", _session.Calibration.NumFrames.ToString());
-                    int j = (int)_session.Calibration.JointType;
-                    CreateAttribute(cNode, "JointType", j.ToString());
-                    CreateAttribute(cNode, "X", _session.Calibration.Position.X.ToString());
-                    CreateAttribute(cNode, "Y", _session.Calibration.Position.Y.ToString());
-                    CreateAttribute(cNode, "Z", _session.Calibration.Position.Z.ToString());
+                    CreateCalibrationEntry(ref cNode, _session.Calibration);
                     xNode.AppendChild(cNode);
                 }
 
@@ -437,7 +495,8 @@ namespace Sessions
             _xmlSessionDoc.Save(System.Configuration.ConfigurationManager.AppSettings["XmlSessionsFile"]);
 
             // Sort the file if a new item was created.
-            if (Operation == "Create")
+            // We open the file again because we are using XDocument format instead of XMLDocument as above.
+            if (Operation == "Create" || Operation == "Edit")
             {
                 var xDoc = XDocument.Load(System.Configuration.ConfigurationManager.AppSettings["XmlSessionsFile"]);
                 var newxDoc = new XElement("Sessions", xDoc.Root
@@ -448,6 +507,36 @@ namespace Sessions
             }
 
             _appViewModel.CurrentPageViewModel = _previousPage;
+        }
+
+        private void CreateCalibrationEntry(ref XmlNode node, CalibrationModel c)
+        {
+            int j = (int)c.JointType;
+            CreateAttribute(node, "JointType", j.ToString());
+
+            CreateAttribute(node, "NumFrames", c.NumFrames.ToString());
+            CreateAttribute(node, "InitialTime", c.InitialTime.ToString());
+
+            CreateAttribute(node, "X", c.Position.X.ToString("0.00000"));
+            CreateAttribute(node, "Y", c.Position.Y.ToString("0.00000"));
+            CreateAttribute(node, "Z", c.Position.Z.ToString("0.00000"));
+
+            CreateAttribute(node, "TX", c.Threshold.X.ToString("0.00000"));
+            CreateAttribute(node, "TY", c.Threshold.Y.ToString("0.00000"));
+            CreateAttribute(node, "TZ", c.Threshold.Z.ToString("0.00000"));
+
+            CreateAttribute(node, "SDX", c.SD.X.ToString("0.00000"));
+            CreateAttribute(node, "SDY", c.SD.Y.ToString("0.00000"));
+            CreateAttribute(node, "SDZ", c.SD.Z.ToString("0.00000"));
+
+            CreateAttribute(node, "EX", c.Estimated.X.ToString("0.00000"));
+            CreateAttribute(node, "EY", c.Estimated.Y.ToString("0.00000"));
+            CreateAttribute(node, "EZ", c.Estimated.Z.ToString("0.00000"));
+
+            CreateAttribute(node, "LShank", c.LeftShankLength.ToString("0.000"));
+            CreateAttribute(node, "LThigh", c.LeftThighLength.ToString("0.000"));
+            CreateAttribute(node, "RShank", c.RightShankLength.ToString("0.000"));
+            CreateAttribute(node, "RThigh", c.RightThighLength.ToString("0.000"));
         }
 
         /// <summary>
