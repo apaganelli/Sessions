@@ -42,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
@@ -59,6 +60,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -89,15 +91,24 @@
     <Compile Include="CalibrationViewModel.cs" />
     <Compile Include="AnalysisViewModel.cs" />
     <Compile Include="FilterARMA.cs" />
+    <Compile Include="KinectBodyIndexView.cs" />
+    <Compile Include="KinectBodyView.cs" />
+    <Compile Include="KinectDepthView.cs" />
+    <Compile Include="KinectIRView.cs" />
     <Compile Include="KinectJointFilter.cs" />
-    <Compile Include="PositionsView.xaml.cs">
-      <DependentUpon>PositionsView.xaml</DependentUpon>
+    <Compile Include="AnalysisView.xaml.cs">
+      <DependentUpon>AnalysisView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RecordView.xaml.cs">
+      <DependentUpon>RecordView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RecordViewModel.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="ResultsView.xaml.cs">
       <DependentUpon>ResultsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="ResultsViewModel.cs" />
+    <Compile Include="SessionAnalysisKinect - Copy.cs" />
     <Compile Include="SessionAnalysisKinect.cs" />
     <Compile Include="SessionCalibrationKinect.cs" />
     <Compile Include="SessionModel.cs" />
@@ -153,7 +164,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PositionsView.xaml">
+    <Page Include="AnalysisView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RecordView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

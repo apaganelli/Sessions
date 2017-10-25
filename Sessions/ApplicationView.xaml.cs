@@ -16,9 +16,13 @@ namespace Sessions
 {
     /// <summary>
     /// Interaction logic for ApplicationView.xaml
+    /// It manages the interaction with all other pages (User Control) activating them when they are selected.
+    /// Instantiate the related view models the first time a view is selected.
+    /// The Application View Model object handles the interaction with this View.
     /// </summary>
     public partial class ApplicationView : Window
     {
+        private RecordViewModel recordViewModel = null;
         private CalibrationViewModel calViewModel = null;
         private AnalysisViewModel exeViewModel = null;
         private ResultsViewModel resultViewModel = null;
@@ -28,7 +32,6 @@ namespace Sessions
             InitializeComponent();
 
         }
-
 
         /// <summary>
         /// Selects the user control to show within the tab area. Creates a new ViewModel, if the case and
@@ -42,7 +45,16 @@ namespace Sessions
             {
                 ApplicationViewModel app = (ApplicationViewModel)DataContext;
 
-                if (TabItemCalibration.IsSelected)
+                if(TabItemRecord.IsSelected)
+                {
+                    if(recordViewModel == null)
+                    {
+                        recordViewModel = new RecordViewModel(app);
+                    }
+
+                    app.CurrentPageViewModel = recordViewModel;
+
+                } else if (TabItemCalibration.IsSelected)
                 {
                     if (calViewModel == null)
                     {

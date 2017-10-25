@@ -20,6 +20,7 @@ namespace Sessions
     /// </summary>
     public partial class CalibrationView : UserControl
     {
+        // Data context of the this view.
         CalibrationViewModel context;
 
         public CalibrationView()
@@ -27,9 +28,12 @@ namespace Sessions
             InitializeComponent();
         }
 
+
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             context = (CalibrationViewModel)DataContext;
+
+            // Show calibration status only if there are frames processed. The process has started.
             lbCalStatus.Visibility = context.ProcessedFrames > 0 ? Visibility.Visible : Visibility.Hidden;
             txCalStatus.Visibility = context.ProcessedFrames > 0 ? Visibility.Visible : Visibility.Hidden;
         }
@@ -38,34 +42,39 @@ namespace Sessions
         private void lbJointNames_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             context = (CalibrationViewModel)DataContext;
+
+            // Gets the name of the selected joint.
             context.SelectedJoint = lbJointNames.SelectedValue.ToString();
         }
 
         private void txCalStatus_TextChanged(object sender, TextChangedEventArgs e)
         {
             context = (CalibrationViewModel)DataContext;
+
+            // Checks when the process has finished.
             if (context.ProcessedFrames >= context.NumFrames)
             {
-                TextBox bt =  (TextBox)FindName("txNumFrames");
-                bt.Focus();
+                TextBox tBox =  (TextBox)FindName("txNumFrames");
+                tBox.Focus();
             }
         }
 
         private void btRun_Click(object sender, RoutedEventArgs e)
         {
+            // If the the run button was clicked show status.
             lbCalStatus.Visibility = Visibility.Visible;
             txCalStatus.Visibility = Visibility.Visible;
         }
 
         private void btSave_Click(object sender, RoutedEventArgs e)
         {
+            // Once have saved the information, hide status.
             lbCalStatus.Visibility = Visibility.Hidden;
             txCalStatus.Visibility = Visibility.Hidden;
         }
 
-
         /// <summary>
-        /// Any threshold has changed
+        /// If any of the three threshold has changed, signalize the view model. Data should be saved.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

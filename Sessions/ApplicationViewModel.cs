@@ -7,6 +7,11 @@ using System.Windows.Input;
 
 namespace Sessions
 {
+    /// <summary>
+    /// The main object of the application that manages the starting page and holds pointers to all
+    /// pages that had been selected. It also holds and inform which is the current active page.
+    /// 
+    /// </summary>
     class ApplicationViewModel : ObservableObject
     {
         private ICommand _changePageCommand;
@@ -16,6 +21,9 @@ namespace Sessions
 
         private SessionsViewModel _sessionsViewModel;           // List of sessions
 
+        /// <summary>
+        /// The constructor activate the application default page and selects it as the active page.
+        /// </summary>
         public ApplicationViewModel()
         {
             // Navigation pages
@@ -31,9 +39,12 @@ namespace Sessions
 
         public SessionsViewModel SessionsViewModel
         {
-            get { return _sessionsViewModel;  }
-        } 
+            get { return _sessionsViewModel; }
+        }
 
+        /// <summary>
+        /// Interface command to execute the change of pages.
+        /// </summary>
         public ICommand ChangePageCommand
         {
             get
@@ -48,6 +59,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the current view model page.
+        /// </summary>
         public IPageViewModel CurrentPageViewModel
         {
             get
@@ -64,6 +78,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets the list of all view model pages that had been instantiated.
+        /// </summary>
         public List<IPageViewModel> PageViewModels
         {
             get
@@ -75,6 +92,11 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Changes the active selected view model. If it is a new view model that had not been activated before,
+        /// adds it to the list of view model pages.
+        /// </summary>
+        /// <param name="viewModel"></param>
         private void ChangeViewModel(IPageViewModel viewModel)
         {
             if (!PageViewModels.Contains(viewModel))

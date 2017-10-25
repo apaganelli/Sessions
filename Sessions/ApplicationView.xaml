@@ -17,12 +17,16 @@
             <local:SessionsView />
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type local:RecordViewModel}">
+            <local:RecordView />
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type local:CalibrationViewModel}">
             <local:CalibrationView />
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type local:AnalysisViewModel}">
-            <local:PositionsView />
+            <local:AnalysisView />
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type local:ResultsViewModel}">
@@ -32,6 +36,10 @@
     </Window.Resources>
     <TabControl SelectionChanged="TabControl_SelectionChanged">
         <TabItem Header="Sessions" x:Name="TabItemSessions">
+            <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+        </TabItem>
+
+        <TabItem Header="Record" x:Name="TabItemRecord">
             <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
         </TabItem>
 

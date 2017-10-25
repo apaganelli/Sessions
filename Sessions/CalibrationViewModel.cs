@@ -18,7 +18,7 @@ using System.Xml;
 namespace Sessions
 {
     /// <summary>
-    /// CalibravionViewModel is a datacontext that controls the calibration process.
+    /// CalibravionViewModel is a data context that controls the calibration process.
     /// If a session was selected, the calibration will run using the video whose Calibration property is true of this
     /// session and it will record the results into xml session entry.
     /// 
@@ -28,18 +28,48 @@ namespace Sessions
     class CalibrationViewModel : ObservableObject, IPageViewModel
     {
         #region Fields
-        private ApplicationViewModel _app;
-        private ObservableCollection<string> _jointTypes;
 
+        /// <summary>
+        /// A reference for the main application
+        /// </summary>
+        private ApplicationViewModel _app;
+
+        // Holds the name of the possible joints to be the reference for calibration.
+        private ObservableCollection<string> _jointTypes = new ObservableCollection<string>()
+        {
+            "SpineBase",
+            "SpineMid",
+            "HipRight",
+            "HipLeft",
+            "Head"
+        };
+
+        /// <summary>
+        /// Holds information of the session 
+        /// </summary>
         private SessionModel _session = null;
 
-        private int _selectedId = 0;                            // Selected session ID for running got from _app
-        private string _selectedName;
+        private int _selectedId = 0;                            // Selected session ID for running, got from _app
+        private string _selectedName;                           // Name of the selected session
+
+        /// <summary>
+        ///  Number of frames to be processed by calibration procedure.
+        /// </summary>
         private int _numFrames = 0;
+
+        /// <summary>
+        /// Name of the selected joint to be the reference of the calibration procedure.
+        /// </summary>
         private string _selectedJoint = "";
+
+        /// <summary>
+        /// Joint index of the selected joint to be the reference of the calibration procedure.
+        /// </summary>
         private int _selectedJointIndex = 0;
 
-        // Gets the average position of the selected joint.
+        /// <summary>
+        /// Holds the average position of the selected joint. 
+        /// </summary>
         private Vector3 _calibrationResult;                     
 
         // Setup the threshold to accept the observed selected joint during analysis. Not used for calibartion.
@@ -61,10 +91,16 @@ namespace Sessions
         private double _leftThighLength;
         private double _leftShankLength;
 
+        /// <summary>
+        /// Holds the session view model reference and information (load and save session information.
+        /// Calibration information is saved into the xml sessions data file.
+        /// </summary>
         private SessionViewModel _sessionVM = null;
 
-        private bool _changed;                        // Controls if any UI field was modified and needs to be saved.
-
+        /// <summary>
+        /// // Controls if any UI field (currently, only the threshold information) was modified and needs to be saved.
+        /// </summary>
+        private bool _changed = false;                        
 
         /// <summary>
         /// Pointer to xml sessions data file.
@@ -76,6 +112,9 @@ namespace Sessions
         /// </summary>
         XmlNode xNode;
 
+        /// <summary>
+        /// User control button commands interface for running calibration and saving calibration data.
+        /// </summary>
         private ICommand _runCommand;
         private ICommand _saveCalibrationCommand;
 #endregion // Fields
@@ -86,21 +125,17 @@ namespace Sessions
             // Gets reference to application navigation controller.
             _app = app;
 
-            // Only used to select the joint type.
-            _jointTypes = new ObservableCollection<string>();
-            _jointTypes.Add("SpineBase");
-            _jointTypes.Add("SpineMid");
-            _jointTypes.Add("HipRight");
-            _jointTypes.Add("HipLeft");
-            _jointTypes.Add("Head");
-
+            // Updates session and calibration information shown onto the User Control.
             LoadCalibrationData(false);
-            _changed = false;
         }
 
         #endregion // Constructor
 
         #region Properties
+
+        /// <summary>
+        /// Gets/sets if calibration parameters on view have been changed and need to be saved.
+        /// </summary>
         public bool CalibrationChanged
         {
             get { return _changed; }
@@ -113,18 +148,24 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets the name of the page view.
+        /// </summary>
         public string Name
         {
             get { return "CalibrationModel"; }
         }
 
+        /// <summary>
+        /// Gets the Joint Type list of joints that can be selected to be a reference for calibration.
+        /// </summary>
         public ObservableCollection<string> JointTypes
         {
             get { return _jointTypes; }
         }
 
         /// <summary>
-        /// Property to show how many frames were already processed during calibration
+        /// Gets/sets how many frames were already processed during calibration
         /// </summary>
         public int ProcessedFrames
         {
@@ -139,6 +180,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the number of frames to be processed by the calibration procedure.
+        /// </summary>
         public int NumFrames
         {
             get { return _numFrames; }
@@ -152,6 +196,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the selected joint name to be the reference for calibration.
+        /// </summary>
         public string SelectedJoint
         {
             get { return _selectedJoint; }
@@ -165,6 +212,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the joint index of the selected joint to be the reference for calibration.
+        /// </summary>
         public int SelectedJointIndex
         {
             get { return _selectedJointIndex; }
@@ -178,6 +228,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the initial time of the clip from where the calibration procedure should start.
+        /// </summary>
         public Int64 InitialTime
         {
             get { return _initialTime; }
@@ -191,6 +244,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the vector3 (X,Y,Z position) of the selected joint for calibration.
+        /// </summary>
         public Vector3 CalibrationResult
         {
             get { return _calibrationResult; }
@@ -221,7 +277,7 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Gets/sets Threshold values.
+        /// Gets/sets Threshold values for accepting the joint position as valid.
         /// </summary>
         public Vector3 CalibrationThreshold
         {
@@ -237,7 +293,7 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Gets/sets Threshold values.
+        /// Gets/sets estimated (guessed) position of the joint selected for calibration.
         /// </summary>
         public Vector3 CalibrationEstimated
         {
@@ -284,6 +340,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gest/sets the length of the right thigh
+        /// </summary>
         public double RightThighLength
         {
             get { return Math.Round(_rightThighLength, 3); }
@@ -297,6 +356,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the length of the right shank
+        /// </summary>
         public double RightShankLength
         {
             get { return Math.Round(_rightShankLength, 3); }
@@ -310,6 +372,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the length of the left thigh.
+        /// </summary>
         public double LeftThighLength
         {
             get { return Math.Round(_leftThighLength, 3); }
@@ -323,7 +388,9 @@ namespace Sessions
             }
         }
 
-
+        /// <summary>
+        /// Gets/sets the length of the left shank.
+        /// </summary>
         public double LeftShankLength
         {
             get { return Math.Round(_leftShankLength, 3); }
@@ -342,13 +409,14 @@ namespace Sessions
         /// Returns the filename of the selected video for calibration
         /// Update calibration information of calibration view model.
         /// </summary>
-        /// <param name="onlyFilename">Gets only filename or load full information</param>
+        /// <param name="onlyFilename">If true, gets only filename. If false, loads the full information</param>
         public string LoadCalibrationData(bool onlyFilename)
         {
             string filename = null;
 
             // This attribution is not inside the constructor method because it may be called every time the page is loaded.
             SessionsViewModel sessionsCtrl = (SessionsViewModel)_app.PageViewModels[0];
+
             _selectedId = sessionsCtrl.SelectedSessionId;
 
             if (_selectedId > 0)
@@ -378,6 +446,7 @@ namespace Sessions
                     _session = _sessionVM.LoadSession(xNode);
                     SelectedName = _session.SessionName;
 
+                    // Check into the list of videos which on was selected for calibration. Gets the last one.
                     foreach (VideoModel video in _session.VideoList)
                     {
                         if (video.IsCalibration)
@@ -386,6 +455,7 @@ namespace Sessions
                         }
                     }
 
+                    // Gets calibration information, if any and if it is the case.
                     if (_session.Calibration != null && !onlyFilename)
                     {
                         _jointType = _session.Calibration.JointType;
@@ -405,6 +475,8 @@ namespace Sessions
                 }
             }
 
+            // If no filename was found. No calibration information was loaded, then it is necessary to initialize the
+            // variables.
             if(filename == null)
             {
                 CalibrationStatus = "Configuring ....";
@@ -455,6 +527,9 @@ namespace Sessions
         }
         #endregion // Properties
 
+        /// <summary>
+        /// Convert selected joint type to our internal index.
+        /// </summary>
         private void ConvertSelectedJointIndex()
         {
             switch (_jointType)
@@ -533,7 +608,10 @@ namespace Sessions
                 _app.SessionsViewModel.CurrentSession.Calibration = calibration;
             }
 
+            // Reset control flags.
             ProcessedFrames = 0;
+            CalibrationChanged = false;
+
             MessageBox.Show("Calibration saved.", "Calibration", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 

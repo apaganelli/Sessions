@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Kinect;
 using Microsoft.Kinect.Tools;
 using System.Windows.Controls;
-using System.Threading;
-using System.Collections.ObjectModel;
 using System.Windows.Shapes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Documents;
-using System.Windows;
 
-namespace Sessions
-{
-    class SessionAnalysisKinect
+/*
+    class SessionAnalysisKinectOld
     {
         // References to Kinect objects.
         private MultiSourceFrameReader _reader;
@@ -204,7 +196,7 @@ namespace Sessions
                                 _record[i] = body.Joints[(JointType)i].Position;
                             }
 
-                            // _allRecords.Add(_record);
+                            _allRecords.Add(_record);
 
                             // Head, Shoulders, Arm and trunk
                             _cpHead = ConvertJoint2ColorSpace(body.Joints[JointType.Head], filtersARMA[(int)JointType.Head]);
@@ -233,6 +225,7 @@ namespace Sessions
                                              _cpElbowLeft, _cpElbowRight, _cpWristLeft, _cpWristRight);
                             DrawLimb(_cpHipL, _cpKneeL, _cpAnkleL);
                             DrawLimb(_cpHipR, _cpKneeR, _cpAnkleR);
+                            CheckLimbLengths(body);
 
                             // Removes jitter and apply Holt Double Exponential filter
                             _defaultCanvas = _filteredCanvas;
@@ -276,6 +269,28 @@ namespace Sessions
 
             if (joint.TrackingState == TrackingState.Tracked)
             {
+                switch (joint.JointType)
+                {
+                    case JointType.HipRight:
+                        _callingProcess.HipRightPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                    case JointType.HipLeft:
+                        _callingProcess.HipLeftPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                    case JointType.KneeRight:
+                        _callingProcess.KneeRightPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                    case JointType.KneeLeft:
+                        _callingProcess.KneeLeftPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                    case JointType.AnkleRight:
+                        _callingProcess.AnkleRightPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                    case JointType.AnkleLeft:
+                        _callingProcess.AnkleLeftPosition = new Vector3(joint.Position.X, joint.Position.Y, joint.Position.Z);
+                        break;
+                }
+
                 point = _mapper.MapCameraPointToColorSpace(joint.Position);
                 historyTrackedJoints[(int)joint.JointType] = point;
 
@@ -327,6 +342,41 @@ namespace Sessions
                             _cpElbowLeft, _cpElbowRight, _cpWristLeft, _cpWristRight);
             DrawLimb(_cpHipL, _cpKneeL, _cpAnkleL);
             DrawLimb(_cpHipR, _cpKneeR, _cpAnkleR);
+        }
+
+
+        private void CheckLimbLengths(Body body)
+        {
+            // Gets right limb segment lengths
+            if (body.Joints[JointType.HipRight].TrackingState == TrackingState.Tracked &&
+               body.Joints[JointType.KneeRight].TrackingState == TrackingState.Tracked &&
+               body.Joints[JointType.AnkleRight].TrackingState == TrackingState.Tracked)
+            {
+                var s = body.Joints[JointType.HipRight].Position;
+                var d = body.Joints[JointType.KneeRight].Position;
+
+                // The distance Z given by Kinect represents the distance of the object to the plane of the sensor,
+                // not the center of the len. That is why we calculate the distance of the center of the len and its difference
+                // to be in the same scale of the other two axis (X and Y).
+                _callingProcess.RightThighLength = Math.Round(Math.Sqrt(Math.Pow(d.X - s.X, 2) + Math.Pow(d.Y - s.Y, 2) + Math.Pow(Util.Length(d) - Util.Length(s), 2)), 3);
+
+                s = body.Joints[JointType.AnkleRight].Position;
+                _callingProcess.RightShankLength = Math.Round(Math.Sqrt(Math.Pow(d.X - s.X, 2) + Math.Pow(d.Y - s.Y, 2) + Math.Pow(Util.Length(d) - Util.Length(s), 2)), 3);
+            }
+
+            // Gets left limb segment lengths
+            if (body.Joints[JointType.HipLeft].TrackingState == TrackingState.Tracked &&
+                body.Joints[JointType.KneeLeft].TrackingState == TrackingState.Tracked &&
+                body.Joints[JointType.AnkleLeft].TrackingState == TrackingState.Tracked)
+            {
+                var s = body.Joints[JointType.HipLeft].Position;
+                var d = body.Joints[JointType.KneeLeft].Position;
+
+                _callingProcess.LeftThighLength = Math.Round(Math.Sqrt(Math.Pow(d.X - s.X, 2) + Math.Pow(d.Y - s.Y, 2) + Math.Pow(Util.Length(d) - Util.Length(s), 2)), 3);
+
+                s = body.Joints[JointType.AnkleLeft].Position;
+                _callingProcess.LeftShankLength = Math.Round(Math.Sqrt(Math.Pow(d.X - s.X, 2) + Math.Pow(d.Y - s.Y, 2) + Math.Pow(Util.Length(d) - Util.Length(s), 2)), 3);
+            }
         }
 
         /// <summary>
@@ -444,6 +494,5 @@ namespace Sessions
             return BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgr32, null, pixels, stride);
         }
     }
-}
 
-
+*/

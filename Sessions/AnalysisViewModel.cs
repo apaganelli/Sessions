@@ -1,79 +1,165 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 using Microsoft.Kinect;
-
+using System.Collections.ObjectModel;
+using Microsoft.Kinect.Tools;
+using System.Threading;
 
 namespace Sessions
 {
     /// <summary>
-    /// Execution View Model is a class that manages the test execution where joints position data
-    /// will be collected and organized for future analysis.
+    /// This is the class view model that works with (the background manager) the UserControl AnalysisView.xaml
     /// 
-    /// A session must be selected in order to determine what set of video files will be played.
-    /// Additionally, data from the user like anthropometric measures may be used for filtering and/or
+    /// 
+    /// Analysis View Model is a class that handles the clips of executed tests showing joints position as well as
+    /// images of the depth view and drawing of skeleton positions.
+    /// 
+    /// A session must had been selected previously in order to determine which set of clip files will be played/analysed.
+    ///
+    /// Additionally, user's anthropometric data measured manually may be used for filtering and/or
     /// to better off accuracy and precision.
     /// 
-    /// Calibration data is recommended to be used, then calibration process should have had been performed.
-    /// 
+    /// Calibration data is recommended to be used, then calibration process should have had been performed. 
     /// </summary>
     class AnalysisViewModel : ObservableObject, IPageViewModel
     {
+        /// <summary>
+        /// Pointer for the kinect sensor
+        /// </summary>
+        private KinectSensor _sensor = null;
+
+        /// <summary>
+        /// Pointer for kinect body view that handles body view frames and show them in canvas.
+        /// </summary>
+        private KinectBodyView kinectBodyView = null;
+
+        /// <summary>
+        /// Assyncronous delegate function for playing video clips
+        /// </summary>
+        /// <param name="videos"></param>
+        private delegate void OneArgDelegate(ObservableCollection<VideoModel> videos);
+
+        /// <summary>
+        /// A reference for the Application View Model that manages the whole application it allows access to
+        /// global variables/functions.
+        /// </summary>
         private ApplicationViewModel _app = null;
 
+        /// <summary>
+        /// Identifier of the selected session. A session is a group of video clips related to a user, date and time session.
+        /// </summary>
         private int _selectedId = 0;
+
+        /// <summary>
+        /// The class object to hold session information
+        /// </summary>
         private SessionModel _session;
+
+        /// <summary>
+        /// Session view model object to manage session information (like load and save information, i.e.)
+        /// </summary>
         private SessionViewModel _sessionVM;
 
+        /// <summary>
+        /// Pointers to canvas on the object view (AnalysisView) where kinect streams will show bitmap images or
+        /// draw skeletons.
+        /// </summary>
         private Canvas _canvasSkeleton;
         private Canvas _canvasImage;
         private Canvas _filteredCanvas;
 
+        /// <summary>
+        /// Holds execution status of the playing.
+        /// </summary>
         private string _executionStatus;
 
-        private Vector3 _hipRightPosition;
-        private Vector3 _kneeRightPosition;
-        private Vector3 _ankleRightPosition;
-
-        private Vector3 _hipLeftPosition;
-        private Vector3 _kneeLeftPosition;
-        private Vector3 _ankleLeftPosition;
-
+        /// <summary>
+        /// Holds infomration of the joint used for calibration.
+        /// </summary>
         private Vector3 _calibrationJoint;
 
-        private double _leftThighLength;
-        private double _leftShankLength;
-        private double _rightThighLength;
-        private double _rightShankLength;
-
+        /// <summary>
+        /// Number of read frames.
+        /// </summary>
         private Int64 _numFrames = 0;
+
+        /// <summary>
+        /// Number of not tracked joint frames.
+        /// </summary>
         private Int64 _notTracked = 0;
+
+        /// <summary>
+        /// Number of tracked joint frames
+        /// </summary>
         private Int64 _tracked = 0;
 
+        /// <summary>
+        /// Name of the user being analysed during the session
+        /// </summary>
         private string _selectedName;
-        private bool _hasCalibration;
-        private bool _play = false;
 
+        /// <summary>
+        /// Flag, if true, calibration was done. Then, it has calibration data. Otherwise, there is not.
+        /// </summary>
+        private bool _hasCalibration;
+
+        /// <summary>
+        /// Flags to keep track of video clip playing status
+        /// </summary>
+        private bool _isPlaying = false;
+        private bool _stopPlaying = false;
+
+        /// <summary>
+        /// Object that will treat kinect frames processing filters, selecting the skeleton and reading raw information.
+        /// </summary>
         private SessionAnalysisKinect _analysis;
 
+        /// <summary>
+        /// List to hold all joints positions for all frames. 
+        /// </summary>
         private List<CameraSpacePoint[]> _records;
 
+        /// <summary>
+        /// Methods that handle button commands on the view.
+        /// </summary>
         private ICommand _startCommand;
         private ICommand _stopCommand;
 
         #region Constructors
+
+        /// <summary>
+        /// This empty constructor is necessary to use this object within a UserControl data template.
+        /// </summary>
+        public AnalysisViewModel()
+        {
+        }
+
         /// <summary>
         /// Controls exercise test process online or offline.
         /// </summary>
         /// <param name="app">Pointer to application controller and interface to access other modules</param>
         public AnalysisViewModel(ApplicationViewModel app) 
         {
+            // Gets application pointer.
             _app = app;
+
+            // Gets Kinect sensor reference.
+            _sensor = KinectSensor.GetDefault();
+
+            // If there is an active kinect / of accessible studio library.
+            if (_sensor != null)
+            {
+                // Opens the sensor.
+                _sensor.Open();
+
+                // Instantiate a body view which will show a skeleton based on the depth and body index images.
+                kinectBodyView = new KinectBodyView(_sensor);
+            }
+
+            // Updates properties with context information.
             LoadExecutionModel();
         }
 
@@ -84,9 +170,12 @@ namespace Sessions
         /// </summary>
         public string Name
         {
-            get { return "Execution View"; }
+            get { return "Analysis View"; }
         }
 
+        /// <summary>
+        /// Gets/sets Session name
+        /// </summary>
         public string SelectedName
         {
             get { return _selectedName; }
@@ -100,6 +189,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets calibration flag status
+        /// </summary>
         public bool HasCalibration
         {
             get { return _hasCalibration; }
@@ -114,7 +206,7 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Status bar for giving feedback to user.
+        /// Gets/sets status bar information.
         /// </summary>
         public string ExecutionStatus
         {
@@ -129,58 +221,9 @@ namespace Sessions
             }
         }
 
-        public double LeftThighLength
-        {
-            get { return _leftThighLength; }
-            set
-            {
-                if(value != _leftThighLength)
-                {
-                    _leftThighLength = value;
-                    OnPropertyChanged("LeftThighLength");
-                }
-            }
-        }
-
-        public double RightThighLength
-        {
-            get { return _rightThighLength; }
-            set
-            {
-                if (value != _rightThighLength)
-                {
-                    _rightThighLength = value;
-                    OnPropertyChanged("RightThighLength");
-                }
-            }
-        }
-
-        public double LeftShankLength
-        {
-            get { return _leftShankLength; }
-            set
-            {
-                if (value != _leftShankLength)
-                {
-                    _leftShankLength = value;
-                    OnPropertyChanged("LeftShankLength");
-                }
-            }
-        }
-
-        public double RightShankLength
-        {
-            get { return _rightShankLength; }
-            set
-            {
-                if (value != _rightShankLength)
-                {
-                    _rightShankLength = value;
-                    OnPropertyChanged("RightShankLength");
-                }
-            }
-        }
-
+        /// <summary>
+        /// Gets/sets list of joint position in real world (CameraSpacePoints) records.
+        /// </summary>
         public List<CameraSpacePoint[]> Records
         {
             get { return _records; }
@@ -218,7 +261,7 @@ namespace Sessions
             {
                 if (_stopCommand == null)
                 {
-                    _stopCommand = new RelayCommand(param => StopPlay(), param => _play);
+                    _stopCommand = new RelayCommand(param => StopPlay(), param => _isPlaying);
                 }
                 return _stopCommand;
             }
@@ -273,101 +316,17 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Holds X,Y,Z position of the right hip.
+        /// Gets a pointer to kinect body view reader.
         /// </summary>
-        public Vector3 HipRightPosition
+        /// <returns></returns>
+        public KinectBodyView GetKinectBodyView()
         {
-            get { return _hipRightPosition; }
-            set
-            {
-                if(value != _hipRightPosition)
-                {
-                    _hipRightPosition = value;
-                    OnPropertyChanged("HipRightPosition");
-                }
-            }
+            return kinectBodyView;
         }
 
         /// <summary>
-        /// Holds, X,Y,Z position of the right knee.
+        /// Gets the name of the joint used for calibration
         /// </summary>
-        public Vector3 KneeRightPosition
-        {
-            get { return _kneeRightPosition; }
-            set
-            {
-                if (value != _kneeRightPosition)
-                {
-                    _kneeRightPosition = value;
-                    OnPropertyChanged("KneeRightPosition");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Holds, X,Y,Z position of the right ankle.
-        /// </summary>
-        public Vector3 AnkleRightPosition
-        {
-            get { return _ankleRightPosition; }
-            set
-            {
-                if (value != _ankleRightPosition)
-                {
-                    _ankleRightPosition = value;
-                    OnPropertyChanged("AnkleRightPosition");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Holds X,Y,Z position of the left hip.
-        /// </summary>
-        public Vector3 HipLeftPosition
-        {
-            get { return _hipLeftPosition; }
-            set
-            {
-                if (value != _hipLeftPosition)
-                {
-                    _hipLeftPosition = value;
-                    OnPropertyChanged("HipLeftPosition");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Holds, X,Y,Z position of the left knee.
-        /// </summary>
-        public Vector3 KneeLeftPosition
-        {
-            get { return _kneeLeftPosition; }
-            set
-            {
-                if (value != _kneeLeftPosition)
-                {
-                    _kneeLeftPosition = value;
-                    OnPropertyChanged("KneeLeftPosition");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Holds, X,Y,Z position of the left ankle.
-        /// </summary>
-        public Vector3 AnkleLeftPosition
-        {
-            get { return _ankleLeftPosition; }
-            set
-            {
-                if (value != _ankleLeftPosition)
-                {
-                    _ankleLeftPosition = value;
-                    OnPropertyChanged("AnkleLeftPosition");
-                }
-            }
-        }
-
         public string JointName
         {
             get
@@ -381,6 +340,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets calibration joint position information.
+        /// </summary>
         public Vector3 CalibrationJoint
         {
             get { return _calibrationJoint; }
@@ -394,6 +356,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the number of read frames.
+        /// </summary>
         public Int64 NumFrames
         {
             get { return _numFrames; } 
@@ -407,6 +372,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the number of not tracked joint frames. Note that for each frame there may be many not tracked joints.
+        /// </summary>
         public Int64 NotTracked
         {
             get { return _notTracked; }
@@ -420,6 +388,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets the number of tracked joint frames. Note that for each frame there may be many tracked joints.
+        /// </summary>
         public Int64 Tracked
         {
             get { return _tracked; }
@@ -435,13 +406,16 @@ namespace Sessions
 
 
         /// <summary>
-        /// Loads specific information of the selected session.
+        /// Loads specific information of the selected session. It is executed when the instance of the object
+        /// is created and every time the User Control View is selected.
         /// </summary>
         public void LoadExecutionModel()
         {
+            // Gets the global pointer for the selected session identifier (if any)
             _selectedId = _app.SessionsViewModel.SelectedSessionId;
 
             // If there is a selected session, loads it, everytime the tab is selected.
+            // We don't know if the user of the application selected another sesssion.
             if (_selectedId > 0)
             {
                 _sessionVM = new SessionViewModel(_selectedId);
@@ -455,6 +429,7 @@ namespace Sessions
                 SelectedName = "Selected name not defined.";
             }
 
+            // Initialize list of read joint information (to be saved or used for statistical analysis in other classes.
             Records = null;
             Records = new List<CameraSpacePoint[]>();
         }
@@ -467,26 +442,83 @@ namespace Sessions
             if (_session != null)
             {
                 ExecutionStatus = "Starting analysis";
-                _analysis = new SessionAnalysisKinect(_session.VideoList, _session.Calibration, CanvasImage, 
-                                                      CanvasSkeleton, FilteredCanvas, this);
-                _play = _analysis.IsPlaying;
+
+                // Send the video list to be played.
+                OneArgDelegate playback = new OneArgDelegate(PlaybackClip);
+                _isPlaying = true;
+                _stopPlaying = false;
+                playback.BeginInvoke(_session.VideoList, null, null);
+
+                // Instantiate the object that will analysed read frames appropriately.
+                _analysis = new SessionAnalysisKinect(_sensor, _session.Calibration, CanvasImage, CanvasSkeleton, 
+                                                        FilteredCanvas, this);
             }
         }
 
+        /// <summary>
+        /// Stops playing the video clip (when the user pressed a stop button on the interface screen).
+        /// </summary>
         private void StopPlay()
         {
             int count = -1;
-
             count = Records.Count;
-
-            if (_analysis != null)
-            {
-                _analysis.Stop = true;
-                _analysis.CloseAll();
-                _analysis = null;
-            }
-
+            _stopPlaying = true;
             ExecutionStatus = "Stopped";
+        }
+
+        /// <summary>
+        /// Playback a list of clips
+        /// </summary>
+        /// <param name="videos">ObservableCollection of VideoModel objects that contains a filename list of the clips to be played.</param>
+        private void PlaybackClip(ObservableCollection<VideoModel> videos)
+        {
+            // Start a connection to read information from a file or kinect sensor.
+            using (KStudioClient client = KStudio.CreateClient())
+            {
+                VideoModel video;                   // An object to holds information of the video clip.
+                client.ConnectToService();
+                KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection();
+                int i = 0;
+
+                // For each video in the list of videos do:
+                while (i < videos.Count)
+                {
+                    video = videos[i];
+
+                    if (!string.IsNullOrEmpty(video.Filename))
+                    {
+                        // "Playing " + video.Filename, i, videos.Count
+
+                        using (KStudioPlayback playback = client.CreatePlayback(video.Filename))
+                        {
+                            // We can use playback.StartPaused() and SeekRelativeTime to start the clip at
+                            // a specific time.
+                            playback.Start();
+
+                            while (playback.State == KStudioPlaybackState.Playing)
+                            {
+                                Thread.Sleep(500);
+
+                                if(_stopPlaying)
+                                {
+                                    break;
+                                }
+                            }
+
+                            _isPlaying = false;
+                            playback.Stop();
+
+                            if (_stopPlaying)
+                            {
+                                client.DisconnectFromService();
+                                return;
+                            }
+                        }
+                    }
+                    i++;
+                }
+                client.DisconnectFromService();
+            }
         }
     }
 }
