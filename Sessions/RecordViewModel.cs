@@ -10,18 +10,13 @@ using System.Windows.Input;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// A class to manages the record view where clips are recorded and played.
     /// </summary>
     class RecordViewModel : ObservableObject, IPageViewModel
     {
         private ApplicationViewModel _app = null;
-
-        /// <summary> Indicates if a recording is currently in progress </summary>
-        private bool isRecording = false;
-
-        /// <summary> Indicates if a playback is currently in progress </summary>
-        private bool isPlaying = false;
-
         private bool isPlayButtonEnabled = true;
         private bool isRecordButtonEnabled = true;
         private bool isStopButtonPressed = false;
@@ -33,7 +28,7 @@ namespace Sessions
         private string lastFile = string.Empty;
 
         /// <summary> Recording duration </summary>
-        private TimeSpan duration = TimeSpan.FromSeconds(30);
+        private TimeSpan duration;
 
         /// <summary> Number of playback iterations </summary>
         private uint loopCount = 0;
@@ -81,6 +76,10 @@ namespace Sessions
         public RecordViewModel(ApplicationViewModel app)
         {
             _app = app;
+
+            int maxDuration = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["MAX_RECORD_DURATION"]);
+
+            duration = TimeSpan.FromSeconds(maxDuration);
 
             // get the kinectSensor object
             this.kinectSensor = KinectSensor.GetDefault();
@@ -231,6 +230,7 @@ namespace Sessions
                                                             : Properties.Resources.SensorNotAvailableStatusText;
         }
 
+
         /// <summary>
         /// Gets or sets the current status text to display for the record/playback features
         /// </summary>
@@ -254,6 +254,15 @@ namespace Sessions
         public void StopCommand()
         {
             isStopButtonPressed = true;
+            this.isRecordButtonEnabled = true;
+            this.isPlayButtonEnabled = true;
+            this.RecordPlaybackStatusText = "Ended";
+        }
+
+
+        public bool GetStopStatus()
+        {
+            return isStopButtonPressed;
         }
 
         /// <summary>
@@ -267,9 +276,9 @@ namespace Sessions
             {
                 this.kinectBodyView.ResetTimers();
                 this.lastFile = filePath;
-                this.isPlaying = true;
                 this.RecordPlaybackStatusText = Properties.Resources.PlaybackInProgressText;
-                this.UpdateState();
+                this.isPlayButtonEnabled = false;
+                this.isRecordButtonEnabled = false;
 
                 // Start running the playback asynchronously
                 OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
@@ -283,7 +292,7 @@ namespace Sessions
         /// </summary>
         /// <param name="filePath">Full path to the .xef file that should be played back to the sensor</param>
         private void PlaybackClip(string filePath)
-        {
+        {            
             using (KStudioClient client = KStudio.CreateClient())
             {
                 client.ConnectToService();
@@ -294,19 +303,16 @@ namespace Sessions
                     playback.LoopCount = this.loopCount;
                     playback.Start();
 
-                    while (playback.State == KStudioPlaybackState.Playing && ! isStopButtonPressed)
+                    while (playback.State == KStudioPlaybackState.Playing && ! GetStopStatus())
                     {
-                        Thread.Sleep(500);
+                        Thread.Sleep(500);                    
                     }
                 }
 
                 client.DisconnectFromService();
             }
 
-            // Update the UI after the background playback task has completed
-            this.isPlaying = false;
-            NoArgDelegate update = new NoArgDelegate(UpdateState);
-            update.BeginInvoke(null, null);
+            this.isStopButtonPressed = false;
         }
 
         /// <summary>
@@ -341,9 +347,7 @@ namespace Sessions
             if (!string.IsNullOrEmpty(filePath))
             {
                 this.lastFile = filePath;
-                this.isRecording = true;
                 this.RecordPlaybackStatusText = Properties.Resources.RecordingInProgressText;
-                this.UpdateState();
 
                 // Start running the recording asynchronously
                 OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
@@ -357,6 +361,8 @@ namespace Sessions
         /// <param name="filePath">Full path to where the file should be saved to</param>
         private void RecordClip(string filePath)
         {
+            this.kinectBodyView.ElapsedTime = new TimeSpan();
+
             using (KStudioClient client = KStudio.CreateClient())
             {
                 client.ConnectToService();
@@ -370,10 +376,13 @@ namespace Sessions
 
                 // Create the recording object
                 //  this.client.CreateRecording(this.TargetFilePath, streamSelectorCollection, this.settings.RecordingBufferSizeMB, flags);
-                using (KStudioRecording recording = client.CreateRecording(filePath, streamCollection, 2048, KStudioRecordingFlags.GenerateFileName))
+
+                uint bufferSize = Convert.ToUInt32(System.Configuration.ConfigurationManager.AppSettings["RECORD_BUFFER_SIZE"]);
+
+                using (KStudioRecording recording = client.CreateRecording(filePath, streamCollection, bufferSize, KStudioRecordingFlags.GenerateFileName))
                 {
                     recording.StartTimed(this.duration);
-                    while (recording.State == KStudioRecordingState.Recording && ! isStopButtonPressed)
+                    while (recording.State == KStudioRecordingState.Recording && ! GetStopStatus())
                     {
                         Thread.Sleep(500);
                     }
@@ -381,13 +390,7 @@ namespace Sessions
 
                 client.DisconnectFromService();
             }
-
-            // Update UI after the background recording task has completed
-            this.isRecording = false;
-            NoArgDelegate update = new NoArgDelegate(UpdateState);
-            update.BeginInvoke(null, null);
         }
-
 
         /// <summary>
         /// Launches the SaveFileDialog window to help user create a new recording file
@@ -413,25 +416,6 @@ namespace Sessions
             }
 
             return fileName;
-        }
-
-        /// <summary>
-        /// Enables/Disables the record and playback buttons in the UI
-        /// </summary>
-        private void UpdateState()
-        {
-            if (this.isPlaying || this.isRecording)
-            {
-                this.isRecordButtonEnabled = false;
-                this.isPlayButtonEnabled = false;
-            }
-            else
-            {
-                this.RecordPlaybackStatusText = " ";
-                this.isRecordButtonEnabled = true;
-                this.isPlayButtonEnabled = true;
-                isStopButtonPressed = false;
-            }
         }
     }
 }

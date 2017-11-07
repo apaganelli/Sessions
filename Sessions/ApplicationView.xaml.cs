@@ -15,6 +15,8 @@ using System.Windows.Shapes;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Interaction logic for ApplicationView.xaml
     /// It manages the interaction with all other pages (User Control) activating them when they are selected.
     /// Instantiate the related view models the first time a view is selected.

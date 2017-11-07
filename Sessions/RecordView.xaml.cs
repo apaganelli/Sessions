@@ -4,6 +4,7 @@ using System.Windows.Controls;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
     /// Interaction logic for RecordView.xaml
     /// </summary>
     public partial class RecordView : UserControl

@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Notifies the interface when a property has changed.
+    /// </summary>
     public abstract class ObservableObject : INotifyPropertyChanged
     {
         /// <summary>

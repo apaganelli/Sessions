@@ -37,6 +37,11 @@ namespace Sessions
         private KinectBodyView kinectBodyView = null;
 
         /// <summary>
+        /// Pointer for kinect IR view that handles IR image
+        /// </summary>
+        private KinectIRView kinectIRView = null;
+
+        /// <summary>
         /// Assyncronous delegate function for playing video clips
         /// </summary>
         /// <param name="videos"></param>
@@ -68,8 +73,6 @@ namespace Sessions
         /// draw skeletons.
         /// </summary>
         private Canvas _canvasSkeleton;
-        private Canvas _canvasImage;
-        private Canvas _filteredCanvas;
 
         /// <summary>
         /// Holds execution status of the playing.
@@ -107,9 +110,13 @@ namespace Sessions
         private bool _hasCalibration;
 
         /// <summary>
-        /// Flags to keep track of video clip playing status
+        /// Flag to keep track is the video clip is playing.
         /// </summary>
         private bool _isPlaying = false;
+
+        /// <summary>
+        /// Flag to keep track if the video clip has been stopped.
+        /// </summary>
         private bool _stopPlaying = false;
 
         /// <summary>
@@ -123,7 +130,7 @@ namespace Sessions
         private List<CameraSpacePoint[]> _records;
 
         /// <summary>
-        /// Methods that handle button commands on the view.
+        /// Methods that handle (start and stop) commands when related buttons are pressed on the view.
         /// </summary>
         private ICommand _startCommand;
         private ICommand _stopCommand;
@@ -154,9 +161,6 @@ namespace Sessions
             {
                 // Opens the sensor.
                 _sensor.Open();
-
-                // Instantiate a body view which will show a skeleton based on the depth and body index images.
-                kinectBodyView = new KinectBodyView(_sensor);
             }
 
             // Updates properties with context information.
@@ -245,7 +249,7 @@ namespace Sessions
                 if (_startCommand == null)
                 {
                     _startCommand = new RelayCommand(param => StartPlay(),
-                        param => true);
+                        param => ! _isPlaying);
                 }
                 return _startCommand;
             }
@@ -284,45 +288,24 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Gets/sets Filtered canvas used for showing filtered skeleton.
-        /// </summary>
-        public Canvas FilteredCanvas
-        {
-            get { return _filteredCanvas; }
-            set
-            {
-                if (value != _filteredCanvas)
-                {
-                    _filteredCanvas = value;
-                    OnPropertyChanged("FilteredCanvas");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Pointer to the UI canvas where video images will appear.
-        /// </summary>
-        public Canvas CanvasImage
-        {
-            get { return _canvasImage; }
-            set
-            {
-                if (value != _canvasImage)
-                {
-                    _canvasImage = value;
-                    OnPropertyChanged("CanvasImage");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a pointer to kinect body view reader.
+        /// Gets a pointer to kinect body view reader. Used for capturing datacontext in UI elements.
         /// </summary>
         /// <returns></returns>
         public KinectBodyView GetKinectBodyView()
         {
             return kinectBodyView;
         }
+
+
+        /// <summary>
+        /// Gets a pointer to kinect IR view reader. Used for capturing datacontext in UI elements.
+        /// </summary>
+        /// <returns></returns>
+        public KinectIRView GetKinectIRView()
+        {
+            return kinectIRView;
+        }
+
 
         /// <summary>
         /// Gets the name of the joint used for calibration
@@ -405,6 +388,12 @@ namespace Sessions
         }
 
 
+        public bool IsStopped
+        {
+            get { return _stopPlaying; }
+        }
+
+
         /// <summary>
         /// Loads specific information of the selected session. It is executed when the instance of the object
         /// is created and every time the User Control View is selected.
@@ -423,6 +412,12 @@ namespace Sessions
 
                 SelectedName = _session.SessionName;
                 HasCalibration = _session.Calibration != null && _session.Calibration.Position != null ? true : false;
+
+                // Instantiate a body view which will show a skeleton based on the depth and body index images.
+                kinectBodyView = new KinectBodyView(_sensor, _session.Calibration);
+
+                // Instantiate an IR view which will show Infrared captured image.
+                kinectIRView = new KinectIRView(_sensor);
             }
             else
             {
@@ -450,8 +445,7 @@ namespace Sessions
                 playback.BeginInvoke(_session.VideoList, null, null);
 
                 // Instantiate the object that will analysed read frames appropriately.
-                _analysis = new SessionAnalysisKinect(_sensor, _session.Calibration, CanvasImage, CanvasSkeleton, 
-                                                        FilteredCanvas, this);
+                _analysis = new SessionAnalysisKinect(_sensor, _session.Calibration, CanvasSkeleton, this);
             }
         }
 
@@ -463,6 +457,7 @@ namespace Sessions
             int count = -1;
             count = Records.Count;
             _stopPlaying = true;
+            _isPlaying = false;
             ExecutionStatus = "Stopped";
         }
 
@@ -495,18 +490,22 @@ namespace Sessions
                             // a specific time.
                             playback.Start();
 
-                            while (playback.State == KStudioPlaybackState.Playing)
+                            while (playback.State == KStudioPlaybackState.Playing && ! IsStopped)
                             {
                                 Thread.Sleep(500);
 
-                                if(_stopPlaying)
+                                if(IsStopped)
                                 {
                                     break;
                                 }
                             }
 
+                            if (playback.State == KStudioPlaybackState.Playing)
+                            {
+                                playback.Stop();
+                            }
+
                             _isPlaying = false;
-                            playback.Stop();
 
                             if (_stopPlaying)
                             {

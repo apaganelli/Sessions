@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿// Author: Antonio Iyda Paganelli
+// Handles AnalysisView UI events loading the corresponding data context.
+// It also controls UI that should be hidden or showed depending on calibration data.
+//
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Sessions
@@ -44,13 +48,16 @@ namespace Sessions
 
             // Sets pointers to canvas objects on this User Control in order to update theirs contents.
             context.CanvasSkeleton = CanvasPosition;
-            context.CanvasImage = CanvasImage;
-            context.FilteredCanvas = FilteredCanvas;
 
             // The data context joint positions is based on another class that is only instantiated
             // after the creation of this User Control. Then, it is necessary update UI objects with this data context.
+            
+            this.kinectIRViewBox.DataContext = context.GetKinectIRView();
+
             KinectBodyView kbv = context.GetKinectBodyView();
             this.kinectBodyViewbox.DataContext = kbv;
+            this.holtFilterViewBox.DataContext = kbv;
+
             this.txtHipLeftX.DataContext = kbv;
             this.txtHipRightX.DataContext = kbv;
             this.txtHipLeftY.DataContext = kbv;

@@ -18,6 +18,8 @@ using System.Xml;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// CalibravionViewModel is a data context that controls the calibration process.
     /// If a session was selected, the calibration will run using the video whose Calibration property is true of this
     /// session and it will record the results into xml session entry.

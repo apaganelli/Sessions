@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Just a new type of 3D data with X, Y, Z axis information.
+    /// </summary>
     class Vector3
     {
         private float _x;

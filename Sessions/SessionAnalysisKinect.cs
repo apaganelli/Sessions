@@ -17,6 +17,10 @@ using System.Windows;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// </summary>
     class SessionAnalysisKinect
     {
         // References to Kinect objects.
@@ -28,11 +32,6 @@ namespace Sessions
 
         // Receives the skeleton data
         private Canvas _canvas;
-        private Canvas _defaultCanvas;
-        private Canvas _filteredCanvas;
-
-        // Receives the image frames (video) from RGB stream.
-        private Canvas _canvasImg;
 
         // Calibration information
         private CalibrationModel _calibration;
@@ -51,14 +50,11 @@ namespace Sessions
         CameraSpacePoint[] _record;
         List<CameraSpacePoint[]> _allRecords;
 
+        ColorSpacePoint[] historyTrackedJoints = new ColorSpacePoint[Body.JointCount]; 
+
         // ARMA filter reference for leg joints
         static readonly int N = 7;
         FilterARMA[] filtersARMA;
-
-        // HOLT double exponential filter reference
-        KinectJointFilter HoltFilter;
-        CameraSpacePoint[] holtJoints;
-        ColorSpacePoint[] historyTrackedJoints = new ColorSpacePoint[Body.JointCount];
 
         // Used to convert from camera space to image space (pixels).
         ColorSpacePoint _cpHead = new ColorSpacePoint { X = 0, Y = 0 };
@@ -80,29 +76,21 @@ namespace Sessions
         ColorSpacePoint _cpKneeR = new ColorSpacePoint { X = 0.0f, Y = 0.0f };
         ColorSpacePoint _cpAnkleR = new ColorSpacePoint { X = 0.0f, Y = 0.0f };
 
-        // Used to receives bitmap images from RGB sensor and send it to a canvas.
-        private ImageSource colorBitmap = null;
-
         /// <summary>
         /// Constructor for playing back videos, show and collect data.
         /// </summary>
         /// <param name="calibration">Calibration data</param>
-        /// <param name="canvasImg">Pointer to RGB image</param>
         /// <param name="canvas">Pointer to skeleton</param>
         /// <param name="calling">Pointer to calling process</param>
         public SessionAnalysisKinect(KinectSensor sensor, CalibrationModel calibration,
-            Canvas canvasImg, Canvas canvas, Canvas filteredCanvas, AnalysisViewModel calling)
+             Canvas canvas, AnalysisViewModel calling)
         {
-            _canvas = canvas;
-            _canvasImg = canvasImg;
             _calibration = calibration;
-            _filteredCanvas = filteredCanvas;
+            _canvas = canvas;
 
             _tracked = 0;
             _notTracked = 0;
             frameCount = 0;
-
-            _defaultCanvas = _canvas;
 
             // If the session has no calibration initialize the instance.
             if (_calibration == null)
@@ -117,21 +105,20 @@ namespace Sessions
             else
             {
                 _Xthreshold = _calibration.Threshold.X;
+                _Ythreshold = _calibration.Threshold.Y;
+                _Zthreshold = _calibration.Threshold.Z;
             }
 
             // A reference to the calling process that receives and shows data.
             _callingProcess = calling;
 
             InitializeFilterARMA();
-            HoltFilter = new KinectJointFilter();
-            HoltFilter.Init(0.5f);
-
             _allRecords = new List<CameraSpacePoint[]>();
 
             if (sensor != null)
             {
                 _mapper = sensor.CoordinateMapper;
-                _reader = sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Body | FrameSourceTypes.Color);
+                _reader = sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Body);
                 _reader.MultiSourceFrameArrived += FrameArrived;                    
             }
         }
@@ -226,21 +213,11 @@ namespace Sessions
                             _cpAnkleL = ConvertJoint2ColorSpace(body.Joints[JointType.AnkleLeft], filtersARMA[(int)JointType.AnkleLeft]);
 
                             // Draw limbs on canvas.
-                            _defaultCanvas = _canvas;
-                            _defaultCanvas.Children.Clear();
-
+                            _canvas.Children.Clear();
                             DrawHeadShoulder(_cpHead, _cpSpineShoulder, _cpSpineBase, _cpShoulderLeft, _cpShoulderRight,
                                              _cpElbowLeft, _cpElbowRight, _cpWristLeft, _cpWristRight);
                             DrawLimb(_cpHipL, _cpKneeL, _cpAnkleL);
                             DrawLimb(_cpHipR, _cpKneeR, _cpAnkleR);
-
-                            // Removes jitter and apply Holt Double Exponential filter
-                            _defaultCanvas = _filteredCanvas;
-                            _defaultCanvas.Children.Clear();
-
-                            HoltFilter.UpdateFilter(body);
-                            holtJoints = HoltFilter.GetFilteredJoints();
-                            ShowHoltJoints(holtJoints);
                             break;
                         }
                     } // For each body
@@ -251,17 +228,6 @@ namespace Sessions
             _callingProcess.NotTracked = _notTracked;
             _callingProcess.Tracked = _tracked;
             _callingProcess.Records = _allRecords;
-
-            // Color frame, images - deprecated, currently, start showing only depth frame images.
-            // Color frames need a lot of space. It is a full HD image.
-            using (var frame = reference.ColorFrameReference.AcquireFrame())
-            {
-                if (frame != null)
-                {
-                    colorBitmap = ToBitmap(frame);
-                    _canvasImg.Background = new ImageBrush(colorBitmap);
-                }
-            }
         }
 
         /// <summary>
@@ -302,34 +268,6 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Converts Holt filtered position into camera space and draws skeleton.
-        /// </summary>
-        /// <param name="joints">Array of output joint positions of Holt Filter.</param>
-        private void ShowHoltJoints(CameraSpacePoint[] joints)
-        {
-            _cpHead = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.Head]);
-            _cpShoulderLeft = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.ShoulderLeft]);
-            _cpShoulderRight = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.ShoulderRight]);
-            _cpElbowRight = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.ElbowRight]);
-            _cpWristRight = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.WristRight]);
-            _cpSpineShoulder = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.SpineShoulder]);
-            _cpElbowLeft = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.ElbowLeft]);
-            _cpWristLeft = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.WristLeft]);
-            _cpSpineBase = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.SpineBase]);
-            _cpHipR = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.HipRight]);
-            _cpKneeR = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.KneeRight]);
-            _cpAnkleR = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.AnkleRight]);
-            _cpHipL = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.HipLeft]);
-            _cpKneeL = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.KneeLeft]);
-            _cpAnkleL = _mapper.MapCameraPointToColorSpace(joints[(int)JointType.AnkleLeft]);
-
-            DrawHeadShoulder(_cpHead, _cpSpineShoulder, _cpSpineBase, _cpShoulderLeft, _cpShoulderRight,
-                            _cpElbowLeft, _cpElbowRight, _cpWristLeft, _cpWristRight);
-            DrawLimb(_cpHipL, _cpKneeL, _cpAnkleL);
-            DrawLimb(_cpHipR, _cpKneeR, _cpAnkleR);
-        }
-
-        /// <summary>
         /// Draws head-shoulder
         /// </summary>
         /// <param name="head"></param>
@@ -341,7 +279,7 @@ namespace Sessions
             ColorSpacePoint leftElbow, ColorSpacePoint rightElbow,
             ColorSpacePoint leftWrist, ColorSpacePoint rightWrist)
         {
-            DrawEllipse(ref head, 30);
+            DrawEllipse(ref head, 25);
             DrawEllipse(ref spineHigh, 2);
             DrawEllipse(ref spineLow, 2);
             DrawEllipse(ref leftShoulder, 5);
@@ -397,7 +335,7 @@ namespace Sessions
             // Setup ellipse position onto canvas.
             Canvas.SetLeft(el, point.X - el.Width / 2);
             Canvas.SetTop(el, point.Y - el.Height / 2);
-            _defaultCanvas.Children.Add(el);
+            _canvas.Children.Add(el);
         }
 
         private void DrawLine(ColorSpacePoint source, ColorSpacePoint dest)
@@ -416,34 +354,10 @@ namespace Sessions
                 Y2 = dest.Y
             };
 
-            if (_defaultCanvas != null)
+            if (_canvas != null)
             {
-                _defaultCanvas.Children.Add(line);
+                _canvas.Children.Add(line);
             }
-        }
-
-        // Color Frame to bitmap
-        private ImageSource ToBitmap(ColorFrame frame)
-        {
-            int width = frame.FrameDescription.Width;
-            int height = frame.FrameDescription.Height;
-
-            byte[] pixels = new byte[width * height * ((PixelFormats.Bgr32.BitsPerPixel + 7) / 8)];
-
-            if (frame.RawColorImageFormat == ColorImageFormat.Bgra)
-            {
-                frame.CopyRawFrameDataToArray(pixels);
-            }
-            else
-            {
-                frame.CopyConvertedFrameDataToArray(pixels, ColorImageFormat.Bgra);
-            }
-
-            int stride = width * PixelFormats.Bgr32.BitsPerPixel / 8;
-
-            return BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgr32, null, pixels, stride);
         }
     }
 }
-
-

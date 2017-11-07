@@ -16,6 +16,8 @@ using System.Windows.Shapes;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Interaction logic for VideoInputDialog.xaml
     /// </summary>
     public partial class VideoInputDialog : Window

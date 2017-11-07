@@ -9,6 +9,8 @@ using Microsoft.Kinect;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Holds calibration information: id of the related sessions, joint type, its position, an acceptable threshold of variation
     /// a standard deviation, the number of frames to be analysed, the initial time of the clip from which it should start evaluation
     /// the estimated joint distance from the kinect camera and segment lengths of the lower limbs.

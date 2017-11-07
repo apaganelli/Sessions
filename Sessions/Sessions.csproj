@@ -95,7 +95,7 @@
     <Compile Include="KinectBodyView.cs" />
     <Compile Include="KinectDepthView.cs" />
     <Compile Include="KinectIRView.cs" />
-    <Compile Include="KinectJointFilter.cs" />
+    <Compile Include="FilterHoltDouble.cs" />
     <Compile Include="AnalysisView.xaml.cs">
       <DependentUpon>AnalysisView.xaml</DependentUpon>
     </Compile>

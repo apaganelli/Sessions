@@ -8,9 +8,11 @@ using Microsoft.Kinect;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli (just adapted the code)
+    /// 
     /// A view to show kinect body view data.
     /// </summary>
-    class KinectBodyView: ObservableObject
+    class KinectBodyView : ObservableObject
     {
         private KinectSensor sensor = null;
 
@@ -110,6 +112,8 @@ namespace Sessions
         private TimeSpan elapsedTime;
         private int countMissingFrames = 0;
 
+        private CalibrationModel _calib = null;
+
         private Vector3 _hipLeft;
         private Vector3 _hipRight;
         private Vector3 _kneeLeft;
@@ -122,9 +126,58 @@ namespace Sessions
         private double _rightThighLength;
         private double _rightShankLength;
 
+        private CameraSpacePoint _p;
+        private float _Xthshd = 0.15f;                   // Threshold from calibration data
+        private float _Ythshd = 0.1f;                    // Threshold from calibration data
+        private float _Zthshd = 0.1f;                    // Threshold from calibration data
+
+        // HOLT double exponential filter reference
+        FilterHoltDouble HoltFilter = null;
+        CameraSpacePoint[] holtJoints;
+        ColorSpacePoint[] historyTrackedJoints = new ColorSpacePoint[Body.JointCount];
+
+        private DrawingGroup dgHolt;
+        private DrawingImage imageSourceHolt;
+
         public KinectBodyView()
         {
+        }
 
+        /// <summary>
+        /// Initializes a new instance of KinectBodyView class.
+        /// </summary>
+        /// <param name="kinectSensor">Active instance of the Kinect Sensor</param>
+        /// <param name="calibrationData">Calibration information</param>
+        public KinectBodyView(KinectSensor kinectSensor, CalibrationModel calibrationData)
+        {
+            if (kinectSensor == null)
+            {
+                throw new ArgumentNullException("kinectSensor");
+            }
+
+            sensor = kinectSensor;
+            ResetTimers();
+
+            if (calibrationData != null)
+            {
+                _calib = calibrationData;
+                _Xthshd = _calib.Threshold.X;
+                _Ythshd = _calib.Threshold.Y;
+                _Zthshd = _calib.Threshold.Z;
+            } else
+            {
+                _calib = new CalibrationModel()
+                {
+                    CalSessionId = 0,
+                    JointType = JointType.SpineBase,
+                    Position = new Vector3(0f, 0f, 0f)
+                };
+            }
+
+            HoltFilter = new FilterHoltDouble();
+            HoltFilter.Init(0.5f);
+
+            CreateBones();
         }
 
         /// <summary>
@@ -140,7 +193,21 @@ namespace Sessions
 
             sensor = kinectSensor;
             ResetTimers();
+            CreateBones();
 
+            _calib = new CalibrationModel()
+            {
+                CalSessionId = 0,
+                JointType = JointType.SpineBase,
+                Position = new Vector3(0f, 0f, 0f)
+            };
+        }
+
+        /// <summary>
+        /// Create drawing group and body colors, and body segments.
+        /// </summary>
+        public void CreateBones()
+        {
             // a bone defined as a line between two joints
             this.bones = new List<Tuple<JointType, JointType>>();
 
@@ -192,8 +259,16 @@ namespace Sessions
 
             // Create an image source that we can use in our image control
             this.imageSource = new DrawingImage(this.drawingGroup);
+
+            // Create the same for showing Holt filtered image.
+            this.dgHolt = new DrawingGroup();
+            this.imageSourceHolt = new DrawingImage(this.dgHolt);
         }
 
+        /// <summary>
+        /// Reset all counters of the body view and flush old information restarting reader and methods
+        /// to receive body frames
+        /// </summary>
         public void ResetTimers()
         {
             this.Dispose();
@@ -227,6 +302,16 @@ namespace Sessions
             get { return this.imageSource; }
         }
 
+
+        public ImageSource ImageSourceHolt
+        {
+            get { return this.imageSourceHolt; }
+        }
+
+
+        /// <summary>
+        /// Gets/sets number of missing frames
+        /// </summary>
         public int MissingFrames
         {
             get { return countMissingFrames; }
@@ -421,23 +506,7 @@ namespace Sessions
                     bodyFrame.GetAndRefreshBodyData(this.bodies);
                     dataReceived = true;
 
-                    ElapsedTime = bodyFrame.RelativeTime;
-                  
-                    // Estimate the number of missing frames recording at 30 fps rate.
-                    if (lastFrame == TimeSpan.Zero)
-                    {
-                        lastFrame = bodyFrame.RelativeTime;
-                    } else
-                    {
-                        currentFrame = bodyFrame.RelativeTime;
-                        double diff = currentFrame.TotalMilliseconds - lastFrame.TotalMilliseconds;
-
-                        if (diff > 35.0)
-                        {
-                            MissingFrames += (int)Math.Ceiling(diff / 33.333);
-                        }
-                        lastFrame = currentFrame;
-                    }
+                    ProcessMissingFrames(bodyFrame.RelativeTime);
                 }
             }
 
@@ -445,6 +514,34 @@ namespace Sessions
             {
                 // visualize the new body data
                 this.UpdateBodyFrame(this.bodies);
+            }
+        }
+
+
+        /// <summary>
+        /// Calculated based on the elapsed time how many frames are missing since last processed frame.
+        /// It is expected to receive a new frame every 33.35 ms (30 fps), tolerable up to every 35 ms.
+        /// </summary>
+        /// <param name="pElapsed">Relative TimeSpan time of the frame received.</param>
+        private void ProcessMissingFrames(TimeSpan pElapsed)
+        {
+            ElapsedTime = pElapsed;
+
+            // Estimate the number of missing frames recording at 30 fps rate.
+            if (lastFrame == TimeSpan.Zero)
+            {
+                lastFrame = pElapsed;
+            }
+            else
+            {
+                currentFrame = pElapsed;
+                double diff = currentFrame.TotalMilliseconds - lastFrame.TotalMilliseconds;
+
+                if (diff > 35.0)
+                {
+                    MissingFrames += (int)Math.Ceiling(diff / 33.333);
+                }
+                lastFrame = currentFrame;
             }
         }
 
@@ -457,48 +554,90 @@ namespace Sessions
         {
             if (bodies != null)
             {
-                using (DrawingContext dc = this.drawingGroup.Open())
+                using (DrawingContext dcHolt = this.dgHolt.Open())
                 {
-                    // Draw a transparent background to set the render size
-                    dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
-
-                    int penIndex = 0;
-                    foreach (Body body in bodies)
+                    using (DrawingContext dc = this.drawingGroup.Open())
                     {
-                        Pen drawPen = this.bodyColors[penIndex++];
+                        // Draw a transparent background to set the render size
+                        dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
 
-                        if (body.IsTracked)
+                        dcHolt.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+
+                        int penIndex = 0;
+                        foreach (Body body in bodies)
                         {
-                            IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
+                            Pen drawPen = this.bodyColors[penIndex++];
 
-                            UpdateJointPosition(joints);
-                            CheckLimbLengths(joints);
-
-                            // convert the joint points to depth (display) space
-                            Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
-
-                            foreach (JointType jointType in joints.Keys)
+                            if (body.IsTracked)
                             {
-                                // sometimes the depth(Z) of an inferred joint may show as negative
-                                // clamp down to 0.1f to prevent coordinatemapper from returning (-Infinity, -Infinity)
-                                CameraSpacePoint position = joints[jointType].Position;
-                                if (position.Z < 0)
+                                // Gets raw position information from chosen calibration joint.
+                                _p = body.Joints[_calib.JointType].Position;
+
+                                // Check if calibration joint position is within expected individual position.
+                                if ((_calib.Position.X == 0 || _p.X >= (_calib.Position.X - _Xthshd) && _p.X <= (_calib.Position.X + _Xthshd)) &&
+                                   (_calib.Position.Y == 0 || _p.Y >= (_calib.Position.Y - _Ythshd) && _p.Y <= (_calib.Position.Y + _Ythshd)) &&
+                                   (_calib.Position.Z == 0 || _p.Z >= (_calib.Position.Z - _Zthshd) && _p.Z <= (_calib.Position.Z + _Zthshd)))
                                 {
-                                    position.Z = InferredZPositionClamp;
+                                    IReadOnlyDictionary<JointType, Joint> joints = body.Joints;
+
+                                    UpdateJointPosition(joints);
+                                    CheckLimbLengths(joints);
+
+                                    if (HoltFilter != null)
+                                    {
+                                        HoltFilter.UpdateFilter(body);
+                                        holtJoints = HoltFilter.GetFilteredJoints();
+                                    }
+
+                                    // convert the joint points to depth (display) space
+                                    Dictionary<JointType, Point> jointPoints = new Dictionary<JointType, Point>();
+                                    Dictionary<JointType, Point> jointPointsHolt = new Dictionary<JointType, Point>();
+
+                                    foreach (JointType jointType in joints.Keys)
+                                    {
+                                        // sometimes the depth(Z) of an inferred joint may show as negative
+                                        // clamp down to 0.1f to prevent coordinatemapper from returning (-Infinity, -Infinity)
+                                        CameraSpacePoint position = joints[jointType].Position;
+
+                                        if (HoltFilter != null)
+                                        {
+                                            CameraSpacePoint posHolt = holtJoints[(int)jointType];
+                                            if (posHolt.Z < 0)
+                                            {
+                                                posHolt.Z = InferredZPositionClamp;
+                                            }
+
+                                            DepthSpacePoint depthSPHolt = coordinateMapper.MapCameraPointToDepthSpace(posHolt);
+                                            jointPointsHolt[jointType] = new Point(depthSPHolt.X, depthSPHolt.Y);
+
+                                        }
+
+                                        if (position.Z < 0)
+                                        {
+                                            position.Z = InferredZPositionClamp;
+                                        }
+
+                                        DepthSpacePoint depthSpacePoint = this.coordinateMapper.MapCameraPointToDepthSpace(position);
+                                        jointPoints[jointType] = new Point(depthSpacePoint.X, depthSpacePoint.Y);
+                                    }
+
+                                    this.DrawBody(joints, jointPoints, dc, drawPen, true);
+
+                                    if (HoltFilter != null)
+                                    {
+                                        this.DrawBody(joints, jointPointsHolt, dcHolt, drawPen, false);
+                                    }
+
+                                    this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
+                                    this.DrawHand(body.HandRightState, jointPoints[JointType.HandRight], dc);
                                 }
-
-                                DepthSpacePoint depthSpacePoint = this.coordinateMapper.MapCameraPointToDepthSpace(position);
-                                jointPoints[jointType] = new Point(depthSpacePoint.X, depthSpacePoint.Y);
                             }
-
-                            this.DrawBody(joints, jointPoints, dc, drawPen);
-                            this.DrawHand(body.HandLeftState, jointPoints[JointType.HandLeft], dc);
-                            this.DrawHand(body.HandRightState, jointPoints[JointType.HandRight], dc);
                         }
-                    }
 
-                    // prevent drawing outside of our render area
-                    this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                        // prevent drawing outside of our render area
+                        this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                        this.dgHolt.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, this.displayWidth, this.displayHeight));
+                    }
                 }
             }
         }
@@ -524,12 +663,12 @@ namespace Sessions
         /// <param name="jointPoints">translated positions of joints to draw</param>
         /// <param name="drawingContext">drawing context to draw to</param>
         /// <param name="drawingPen">specifies color to draw a specific body</param>
-        private void DrawBody(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, DrawingContext drawingContext, Pen drawingPen)
+        private void DrawBody(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, DrawingContext drawingContext, Pen drawingPen, bool trackState)
         {
             // Draw the bones
             foreach (var bone in this.bones)
             {
-                this.DrawBone(joints, jointPoints, bone.Item1, bone.Item2, drawingContext, drawingPen);
+                this.DrawBone(joints, jointPoints, bone.Item1, bone.Item2, drawingContext, drawingPen, trackState);
             }
 
             // Draw the joints
@@ -564,14 +703,15 @@ namespace Sessions
         /// <param name="jointType1">second joint of bone to draw</param>
         /// <param name="drawingContext">drawing context to draw to</param>
         /// /// <param name="drawingPen">specifies color to draw a specific bone</param>
-        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, JointType jointType0, JointType jointType1, DrawingContext drawingContext, Pen drawingPen)
+        private void DrawBone(IReadOnlyDictionary<JointType, Joint> joints, IDictionary<JointType, Point> jointPoints, JointType jointType0, JointType jointType1, DrawingContext drawingContext, Pen drawingPen, bool track)
         {
             Joint joint0 = joints[jointType0];
             Joint joint1 = joints[jointType1];
 
             // If we can't find either of these joints, exit
-            if (joint0.TrackingState == TrackingState.NotTracked ||
-                joint1.TrackingState == TrackingState.NotTracked)
+            if (track && (
+                joint0.TrackingState == TrackingState.NotTracked ||
+                joint1.TrackingState == TrackingState.NotTracked))
             {
                 return;
             }

@@ -11,7 +11,7 @@ using System;
 
 namespace Sessions
 {
-    class KinectJointFilter
+    class FilterHoltDouble
     {
         public struct TRANSFORM_SMOOTH_PARAMETERS
         {
@@ -43,7 +43,7 @@ namespace Sessions
         /// <summary>
         /// Constructor
         /// </summary>
-        public KinectJointFilter()
+        public FilterHoltDouble()
         {
             m_pFilteredJoints = new CameraSpacePoint[Body.JointCount];
             m_pHistory = new FilterDoubleExponentialData[Body.JointCount];
@@ -56,7 +56,7 @@ namespace Sessions
             Init();
         }
 
-        ~KinectJointFilter()
+        ~FilterHoltDouble()
         {
             Shutdown();
         }

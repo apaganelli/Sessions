@@ -8,6 +8,8 @@ using System.Windows.Input;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// The main object of the application that manages the starting page and holds pointers to all
     /// pages that had been selected. It also holds and inform which is the current active page.
     /// 

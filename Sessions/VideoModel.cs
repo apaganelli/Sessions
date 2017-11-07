@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Video class exposes properties of videos that are related to a Trial.
     /// </summary>
     class VideoModel : ObservableObject

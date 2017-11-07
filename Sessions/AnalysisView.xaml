@@ -1,4 +1,20 @@
-﻿<UserControl x:Class="Sessions.AnalysisView"
+﻿<!-- 
+    Author: Antonio Iyda Paganelli
+    
+    UserControl that shows images of a Session composed by a set of video clips.
+    It shows the infrared view of that clips, builds up three skeletons formed by:
+    
+    1) The raw position information inferred by kinect.
+    2) The position information + inferred position of not tracked joints after an ARMA filter
+    3) The inferred position after the Hold Double Exponentional filter.
+    
+    It shows as well as the position of three axis of the hip, knee and ankle.
+    It shows the calculated lenght of the thigh and shank
+    It may show the position of the chosen calibration joint.
+    
+    All events are controlled by the ApplicationViewModel class.
+    -->
+    <UserControl x:Class="Sessions.AnalysisView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -113,16 +129,13 @@
                 <Canvas Margin="5,5,5,5" Name="CanvasPosition" Height="300" Width="200" />
             </Grid>
 
+            <Viewbox x:Name="holtFilterViewBox" Grid.Row="8" Grid.Column="4" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+                <Image Source="{Binding ImageSourceHolt}" Stretch="UniformToFill" />
+            </Viewbox>
 
-            <Grid Grid.Row="8" Grid.Column="4" Grid.ColumnSpan="2" VerticalAlignment="Top">
-                <Canvas Margin="5,5,5,5" Name="FilteredCanvas" Height="300" Width="200" />
-            </Grid>
-
-            <Grid Grid.Row="8" Grid.Column="6" Grid.ColumnSpan="3" VerticalAlignment="Top" HorizontalAlignment="Center">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Canvas Name="CanvasImage" Height="300" Width="400"  />
-                </ScrollViewer>
-            </Grid>
+            <Viewbox x:Name="kinectIRViewBox" Grid.Row="8" Grid.Column="6" Grid.ColumnSpan="3" HorizontalAlignment="Center">
+                <Image Source="{Binding ImageSource}" Stretch="UniformToFill" />
+            </Viewbox>
         </Grid>
     </DockPanel>
 </UserControl>

@@ -7,6 +7,8 @@ using System.Windows.Media.Imaging;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli (just adapted the code)
+    /// 
     /// A view to show body index information
     /// </summary>
     public sealed class KinectBodyIndexView : ObservableObject

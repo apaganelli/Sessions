@@ -9,6 +9,11 @@ using System.Windows;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// It instantiates the ApplicationView (window and shows it) and the ApplicationViewModel linking it as the view
+    /// DataContext which will handles all user interface events.
+    /// 
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application

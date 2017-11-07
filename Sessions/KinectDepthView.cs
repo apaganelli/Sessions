@@ -6,6 +6,12 @@ using System.Windows.Media.Imaging;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli (just adapted the code)
+    /// 
+    /// Shows Kinect Depth Image.
+    /// 
+    /// </summary>
     public sealed class KinectDepthView : ObservableObject
     {
         /// <summary>

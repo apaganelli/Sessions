@@ -6,6 +6,8 @@ using System.Windows.Media;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Interaction logic for SessionsView.xaml
     /// </summary>
     public partial class SessionsView : UserControl

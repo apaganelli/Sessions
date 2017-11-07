@@ -15,10 +15,12 @@ using System.Xml.Linq;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// SessionModelView is used to edit or create a new Session SessionModel. Actually, it is not a view, but
     /// another controller to SessionsView.
     /// </summary>
-    class SessionViewModel: ObservableObject, IPageViewModel
+    class SessionViewModel : ObservableObject, IPageViewModel
     {
         private ApplicationViewModel _appViewModel;
         private SessionModel _session;

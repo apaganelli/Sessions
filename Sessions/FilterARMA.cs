@@ -9,6 +9,8 @@ using Microsoft.Kinect;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Implements an ARMA filter of n size.
     /// Predicts the next position based on the weighted average of the last n positions.
     /// </summary>

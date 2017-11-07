@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
     /// SessionModel class holds the information of each Session analyzed.
     /// It is identified by SessionId/SessionName/SessionDate and has additionally the following properties:
     /// Modality, SessionType and AmountOfVideo.

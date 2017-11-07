@@ -9,6 +9,11 @@ using System.Threading;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Processes frames for the calibration process.
+    /// </summary>
     class SessionCalibrationKinect
     {
         private KinectSensor _sensor = null;

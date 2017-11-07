@@ -8,6 +8,11 @@ using System.Windows.Input;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Relay commands started from an event in the UI
+    /// </summary>
     class RelayCommand : ICommand
     {
         #region Fields

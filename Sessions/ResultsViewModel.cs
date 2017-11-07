@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Show the results of alignment analysis of some joint positions.
+    /// </summary>
     class ResultsViewModel : ObservableObject, IPageViewModel
     {
 

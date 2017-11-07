@@ -16,6 +16,8 @@ using System.Windows.Shapes;
 namespace Sessions
 {
     /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
     /// Interaction logic for CalibrationView.xaml
     /// </summary>
     public partial class CalibrationView : UserControl

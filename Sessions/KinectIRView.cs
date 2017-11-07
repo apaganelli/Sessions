@@ -6,6 +6,11 @@ using System.Windows.Media.Imaging;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli (just adapted the code)
+    /// 
+    /// Shows Kinect IR image.
+    /// </summary>
     public sealed class KinectIRView: ObservableObject
     {
         /// <summary>

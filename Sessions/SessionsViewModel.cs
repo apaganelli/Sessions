@@ -10,6 +10,11 @@ using System.Xml;
 
 namespace Sessions
 {
+    /// <summary>
+    /// Author: Antonio Iyda Paganelli
+    /// 
+    /// Controls user interface events and all logic for Session processes.
+    /// </summary>
     class SessionsViewModel : ObservableObject, IPageViewModel
     {
         #region Fields
