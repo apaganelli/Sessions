@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Sessions Application" Height="300" Width="450"
         WindowState="Maximized">
-
+    
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:SessionsViewModel}">
             <local:SessionsView />
@@ -32,8 +32,16 @@
         <DataTemplate DataType="{x:Type local:ResultsViewModel}">
             <local:ResultsView />
         </DataTemplate>
-
     </Window.Resources>
+
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="E_xit" Click="MenuItem_Click"/>
+            </MenuItem>
+
+        </Menu>
+
     <TabControl SelectionChanged="TabControl_SelectionChanged">
         <TabItem Header="Sessions" x:Name="TabItemSessions">
             <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
@@ -54,6 +62,8 @@
         <TabItem Header="Results" x:Name="TabItemResults">
             <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
         </TabItem>
-
     </TabControl>
+
+    </DockPanel>
+
 </Window>

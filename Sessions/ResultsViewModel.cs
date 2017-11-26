@@ -17,6 +17,7 @@ namespace Sessions
     /// </summary>
     class ResultsViewModel : ObservableObject, IPageViewModel
     {
+#region General attributes        
         /// <summary>
         /// Pointer to main application.
         /// </summary>
@@ -51,8 +52,13 @@ namespace Sessions
         int _secondSet;
         int _partitionSize;
 
-        ICommand _HKA_Command;
+        string _oldFilename;
 
+        ICommand _HKA_Command;
+        ICommand _HipAlignment_Command;
+        ICommand _ShoulderAlignment_Command;
+
+        #region Average, sd, min, max, amplitude
         private double averageHipLeft = 0;
         private double averageKneeLeft = 0;
         private double averageAnkleLeft = 0;
@@ -87,6 +93,62 @@ namespace Sessions
         float ampKneeRight = 0;
         float ampAnkleLeft = 0;
         float ampAnkleRight = 0;
+        #endregion mean, sd, min, max, amplitude.
+
+        #region Differences (Hip-Knee-Ankle)
+        double _meanDiffHipKnee1Left;
+        double _meanDiffHipKnee2Left;
+        double _tDiffHipKneeLeft;
+        double _dfDiffHipKneeLeft;
+        double _pValueDiffHipKneeLeft;
+
+        double _meanDiffHipKnee1Right;
+        double _meanDiffHipKnee2Right;
+        double _tDiffHipKneeRight;
+        double _dfDiffHipKneeRight;
+        double _pValueDiffHipKneeRight;
+
+        double _meanDiffKneeAnkle1Left;
+        double _meanDiffKneeAnkle2Left;
+        double _tDiffKneeAnkleLeft;
+        double _dfDiffKneeAnkleLeft;
+        double _pValueDiffKneeAnkleLeft;
+
+        double _meanDiffKneeAnkle1Right;
+        double _meanDiffKneeAnkle2Right;
+        double _tDiffKneeAnkleRight;
+        double _dfDiffKneeAnkleRight;
+        double _pValueDiffKneeAnkleRight;
+        #endregion
+
+
+        #region Hip Alignment
+        double _averageYHipLeft;
+        double _averageYHipRight;
+        double _sdYHipLeft;
+        double _sdYHipRight;
+        float _minYHipLeft;
+        float _minYHipRight;
+        float _maxYHipLeft;
+        float _maxYHipRight;
+        float _ampYHipLeft;
+        float _ampYHipRight;
+        #endregion Hip Alignment
+
+        #region Shoulder Alignment
+        double _averageYShoulderLeft;
+        double _averageYShoulderRight;
+        double _sdYShoulderLeft;
+        double _sdYShoulderRight;
+        float _minYShoulderLeft;
+        float _minYShoulderRight;
+        float _maxYShoulderLeft;
+        float _maxYShoulderRight;
+        float _ampYShoulderLeft;
+        float _ampYShoulderRight;
+        #endregion Shoulder Alignment
+
+        #endregion General Attributes
 
         /// <summary>
         /// ViewModel related to Results tab.
@@ -108,6 +170,7 @@ namespace Sessions
 
         }
 
+        #region properties
         public float TotalFrames
         {
             get { return _totalFrames; }
@@ -172,24 +235,11 @@ namespace Sessions
             get { return _partitionSize; }
             set
             {
-                if (_partitionSize != value)
+                if (value != _partitionSize)
                 {
                     _partitionSize = value;
                     OnPropertyChanged("PartitionSize");
                 }
-            }
-        }
-
-        public ICommand HKA_Command
-        {
-            get
-            {
-                if (_HKA_Command == null)
-                {
-                    _HKA_Command = new RelayCommand(param => HKA_Alignment(),
-                        param => _partitionSize > 0);
-                }
-                return _HKA_Command;
             }
         }
 
@@ -583,11 +633,591 @@ namespace Sessions
             }
         }
 
+        #region Property MeanDiff Hip-Knee LEFT
+        public double MeanDiffHipKnee1Left
+        {
+            get { return _meanDiffHipKnee1Left; }
+            set
+            {
+                if(_meanDiffHipKnee1Left != value)
+                {
+                    _meanDiffHipKnee1Left = value;
+                    OnPropertyChanged("MeanDiffHipKnee1Left");
+                }
+            }
+        }
+
+        public double MeanDiffHipKnee2Left
+        {
+            get { return _meanDiffHipKnee2Left; }
+            set
+            {
+                if (_meanDiffHipKnee2Left != value)
+                {
+                    _meanDiffHipKnee2Left = value;
+                    OnPropertyChanged("MeanDiffHipKnee2Left");
+                }
+            }
+        }
+
+        public double TDiffHipKneeLeft
+        {
+            get { return _tDiffHipKneeLeft; }
+            set
+            {
+                if (_tDiffHipKneeLeft != value)
+                {
+                    _tDiffHipKneeLeft = value;
+                    OnPropertyChanged("TDiffHipKneeLeft");
+                }
+            }
+        }
+
+        public double DFDiffHipKneeLeft
+        {
+            get { return _dfDiffHipKneeLeft; }
+            set
+            {
+                if (_dfDiffHipKneeLeft != value)
+                {
+                    _dfDiffHipKneeLeft = value;
+                    OnPropertyChanged("DFDiffHipKneeLeft");
+                }
+            }
+        }
+
+        public double PValueDiffHipKneeLeft
+        {
+            get { return _pValueDiffHipKneeLeft; }
+            set
+            {
+                if (_pValueDiffHipKneeLeft != value)
+                {
+                    _pValueDiffHipKneeLeft = value;
+                    OnPropertyChanged("PValueDiffHipKneeLeft");
+                }
+            }
+        }
+        #endregion
+
+        #region Property MeanDiff Hip-Knee Right
+        public double MeanDiffHipKnee1Right
+        {
+            get { return _meanDiffHipKnee1Right; }
+            set
+            {
+                if (_meanDiffHipKnee1Right != value)
+                {
+                    _meanDiffHipKnee1Right = value;
+                    OnPropertyChanged("MeanDiffHipKnee1Right");
+                }
+            }
+        }
+
+        public double MeanDiffHipKnee2Right
+        {
+            get { return _meanDiffHipKnee2Right; }
+            set
+            {
+                if (_meanDiffHipKnee2Right != value)
+                {
+                    _meanDiffHipKnee2Right = value;
+                    OnPropertyChanged("MeanDiffHipKnee2Right");
+                }
+            }
+        }
+
+        public double TDiffHipKneeRight
+        {
+            get { return _tDiffHipKneeRight; }
+            set
+            {
+                if (_tDiffHipKneeRight != value)
+                {
+                    _tDiffHipKneeRight = value;
+                    OnPropertyChanged("TDiffHipKneeRight");
+                }
+            }
+        }
+
+        public double DFDiffHipKneeRight
+        {
+            get { return _dfDiffHipKneeRight; }
+            set
+            {
+                if (_dfDiffHipKneeRight != value)
+                {
+                    _dfDiffHipKneeRight = value;
+                    OnPropertyChanged("DFDiffHipKneeRight");
+                }
+            }
+        }
+
+        public double PValueDiffHipKneeRight
+        {
+            get { return _pValueDiffHipKneeRight; }
+            set
+            {
+                if (_pValueDiffHipKneeRight != value)
+                {
+                    _pValueDiffHipKneeRight = value;
+                    OnPropertyChanged("PValueDiffHipKneeRight");
+                }
+            }
+        }
+        #endregion
+
+        #region Property MeanDiff Knee-Ankle LEFT
+        public double MeanDiffKneeAnkle1Left
+        {
+            get { return _meanDiffKneeAnkle1Left; }
+            set
+            {
+                if (_meanDiffKneeAnkle1Left != value)
+                {
+                    _meanDiffKneeAnkle1Left = value;
+                    OnPropertyChanged("MeanDiffKneeAnkle1Left");
+                }
+            }
+        }
+
+        public double MeanDiffKneeAnkle2Left
+        {
+            get { return _meanDiffKneeAnkle2Left; }
+            set
+            {
+                if (_meanDiffKneeAnkle2Left != value)
+                {
+                    _meanDiffKneeAnkle2Left = value;
+                    OnPropertyChanged("MeanDiffKneeAnkle2Left");
+                }
+            }
+        }
+
+        public double TDiffKneeAnkleLeft
+        {
+            get { return _tDiffKneeAnkleLeft; }
+            set
+            {
+                if (_tDiffKneeAnkleLeft != value)
+                {
+                    _tDiffKneeAnkleLeft = value;
+                    OnPropertyChanged("TDiffKneeAnkleLeft");
+                }
+            }
+        }
+
+        public double DFDiffKneeAnkleLeft
+        {
+            get { return _dfDiffKneeAnkleLeft; }
+            set
+            {
+                if (_dfDiffKneeAnkleLeft != value)
+                {
+                    _dfDiffKneeAnkleLeft = value;
+                    OnPropertyChanged("DFDiffKneeAnkleLeft");
+                }
+            }
+        }
+
+        public double PValueDiffKneeAnkleLeft
+        {
+            get { return _pValueDiffKneeAnkleLeft; }
+            set
+            {
+                if (_pValueDiffKneeAnkleLeft != value)
+                {
+                    _pValueDiffKneeAnkleLeft = value;
+                    OnPropertyChanged("PValueDiffKneeAnkleLeft");
+                }
+            }
+        }
+        #endregion
+
+        #region Property MeanDiff KneeAnkle Right
+        public double MeanDiffKneeAnkle1Right
+        {
+            get { return _meanDiffKneeAnkle1Right; }
+            set
+            {
+                if (_meanDiffKneeAnkle1Right != value)
+                {
+                    _meanDiffKneeAnkle1Right = value;
+                    OnPropertyChanged("MeanDiffKneeAnkle1Right");
+                }
+            }
+        }
+
+        public double MeanDiffKneeAnkle2Right
+        {
+            get { return _meanDiffKneeAnkle2Right; }
+            set
+            {
+                if (_meanDiffKneeAnkle2Right != value)
+                {
+                    _meanDiffKneeAnkle2Right = value;
+                    OnPropertyChanged("MeanDiffKneeAnkle2Right");
+                }
+            }
+        }
+
+        public double TDiffKneeAnkleRight
+        {
+            get { return _tDiffKneeAnkleRight; }
+            set
+            {
+                if (_tDiffKneeAnkleRight != value)
+                {
+                    _tDiffKneeAnkleRight = value;
+                    OnPropertyChanged("TDiffKneeAnkleRight");
+                }
+            }
+        }
+
+        public double DFDiffKneeAnkleRight
+        {
+            get { return _dfDiffKneeAnkleRight; }
+            set
+            {
+                if (_dfDiffKneeAnkleRight != value)
+                {
+                    _dfDiffKneeAnkleRight = value;
+                    OnPropertyChanged("DFDiffKneeAnkleRight");
+                }
+            }
+        }
+
+        public double PValueDiffKneeAnkleRight
+        {
+            get { return _pValueDiffKneeAnkleRight; }
+            set
+            {
+                if (_pValueDiffKneeAnkleRight != value)
+                {
+                    _pValueDiffKneeAnkleRight = value;
+                    OnPropertyChanged("PValueDiffKneeAnkleRight");
+                }
+            }
+        }
+        #endregion
+
+        #region Properties HipAlignment
+
+        public double AverageYHipLeft
+        {
+            get { return _averageYHipLeft; }
+            set
+            {
+                if(_averageYHipLeft != value)
+                {
+                    _averageYHipLeft = value;
+                    OnPropertyChanged("AverageYHipLeft");
+                }
+            }
+        }
+
+        public double SDYHipLeft
+        {
+            get { return _sdYHipLeft; }
+            set
+            {
+                if (_sdYHipLeft != value)
+                {
+                    _sdYHipLeft = value;
+                    OnPropertyChanged("SDYHipLeft");
+                }
+            }
+        }
+
+        public float MinYHipLeft
+        {
+            get { return _minYHipLeft; }
+            set
+            {
+                if (_minYHipLeft != value)
+                {
+                    _minYHipLeft = value;
+                    OnPropertyChanged("MinYHipLeft");
+                }
+            }
+        }
+
+        public float MaxYHipLeft
+        {
+            get { return _maxYHipLeft; }
+            set
+            {
+                if (_maxYHipLeft != value)
+                {
+                    _maxYHipLeft = value;
+                    OnPropertyChanged("MaxYHipLeft");
+                }
+            }
+        }
+
+        public float AmpYHipLeft
+        {
+            get { return _ampYHipLeft; }
+            set
+            {
+                if (_ampYHipLeft != value)
+                {
+                    _ampYHipLeft = value;
+                    OnPropertyChanged("AmpYHipLeft");
+                }
+            }
+        }
+
+        public double AverageYHipRight
+        {
+            get { return _averageYHipRight; }
+            set
+            {
+                if (_averageYHipRight != value)
+                {
+                    _averageYHipRight = value;
+                    OnPropertyChanged("AverageYHipRight");
+                }
+            }
+        }
+
+        public double SDYHipRight
+        {
+            get { return _sdYHipRight; }
+            set
+            {
+                if (_sdYHipRight != value)
+                {
+                    _sdYHipRight = value;
+                    OnPropertyChanged("SDYHipRight");
+                }
+            }
+        }
+
+        public float MinYHipRight
+        {
+            get { return _minYHipRight; }
+            set
+            {
+                if (_minYHipRight != value)
+                {
+                    _minYHipRight = value;
+                    OnPropertyChanged("MinYHipRight");
+                }
+            }
+        }
+
+        public float MaxYHipRight
+        {
+            get { return _maxYHipRight; }
+            set
+            {
+                if (_maxYHipRight != value)
+                {
+                    _maxYHipRight = value;
+                    OnPropertyChanged("MaxYHipRight");
+                }
+            }
+        }
+
+        public float AmpYHipRight
+        {
+            get { return _ampYHipRight; }
+            set
+            {
+                if (_ampYHipRight != value)
+                {
+                    _ampYHipRight = value;
+                    OnPropertyChanged("AmpYHipRight");
+                }
+            }
+        }
+        #endregion
+
+        #region Properties ShoulderAlignment
+
+        public double AverageYShoulderLeft
+        {
+            get { return _averageYShoulderLeft; }
+            set
+            {
+                if (_averageYShoulderLeft != value)
+                {
+                    _averageYShoulderLeft = value;
+                    OnPropertyChanged("AverageYShoulderLeft");
+                }
+            }
+        }
+
+        public double SDYShoulderLeft
+        {
+            get { return _sdYShoulderLeft; }
+            set
+            {
+                if (_sdYShoulderLeft != value)
+                {
+                    _sdYShoulderLeft = value;
+                    OnPropertyChanged("SDYShoulderLeft");
+                }
+            }
+        }
+
+        public float MinYShoulderLeft
+        {
+            get { return _minYShoulderLeft; }
+            set
+            {
+                if (_minYShoulderLeft != value)
+                {
+                    _minYShoulderLeft = value;
+                    OnPropertyChanged("MinYShoulderLeft");
+                }
+            }
+        }
+
+        public float MaxYShoulderLeft
+        {
+            get { return _maxYShoulderLeft; }
+            set
+            {
+                if (_maxYShoulderLeft != value)
+                {
+                    _maxYShoulderLeft = value;
+                    OnPropertyChanged("MaxYShoulderLeft");
+                }
+            }
+        }
+
+        public float AmpYShoulderLeft
+        {
+            get { return _ampYShoulderLeft; }
+            set
+            {
+                if (_ampYShoulderLeft != value)
+                {
+                    _ampYShoulderLeft = value;
+                    OnPropertyChanged("AmpYShoulderLeft");
+                }
+            }
+        }
+
+        public double AverageYShoulderRight
+        {
+            get { return _averageYShoulderRight; }
+            set
+            {
+                if (_averageYShoulderRight != value)
+                {
+                    _averageYShoulderRight = value;
+                    OnPropertyChanged("AverageYShoulderRight");
+                }
+            }
+        }
+
+        public double SDYShoulderRight
+        {
+            get { return _sdYShoulderRight; }
+            set
+            {
+                if (_sdYShoulderRight != value)
+                {
+                    _sdYShoulderRight = value;
+                    OnPropertyChanged("SDYShoulderRight");
+                }
+            }
+        }
+
+        public float MinYShoulderRight
+        {
+            get { return _minYShoulderRight; }
+            set
+            {
+                if (_minYShoulderRight != value)
+                {
+                    _minYShoulderRight = value;
+                    OnPropertyChanged("MinYShoulderRight");
+                }
+            }
+        }
+
+        public float MaxYShoulderRight
+        {
+            get { return _maxYShoulderRight; }
+            set
+            {
+                if (_maxYShoulderRight != value)
+                {
+                    _maxYShoulderRight = value;
+                    OnPropertyChanged("MaxYShoulderRight");
+                }
+            }
+        }
+
+        public float AmpYShoulderRight
+        {
+            get { return _ampYShoulderRight; }
+            set
+            {
+                if (_ampYShoulderRight != value)
+                {
+                    _ampYShoulderRight = value;
+                    OnPropertyChanged("AmpYShoulderRight");
+                }
+            }
+        }
+        #endregion
+
+        #endregion Properties
+
+        #region Commands
+        public ICommand HKA_Command
+        {
+            get
+            {
+                if (_HKA_Command == null)
+                {
+                    _HKA_Command = new RelayCommand(param => HKA_Alignment(),
+                        param => _secondSet> 0);
+                }
+                return _HKA_Command;
+            }
+        }
+
+
+        public ICommand HipAlignment_Command
+        {
+            get
+            {
+                if (_HipAlignment_Command == null)
+                {
+                    _HipAlignment_Command = new RelayCommand(param => HipAlignment(),
+                        param => true);
+                }
+                return _HipAlignment_Command;
+            }
+        }
+
+        public ICommand ShoulderAlignment_Command
+        {
+            get
+            {
+                if (_ShoulderAlignment_Command == null)
+                {
+                    _ShoulderAlignment_Command = new RelayCommand(param => ShoulderAlignment(),
+                        param => true);
+                }
+                return _ShoulderAlignment_Command;
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Check Hip, Knee, Ankle alignment fills out 
         /// </summary>
         private void HKA_Alignment()
         {
+            _partitionSize = (int) TotalFrames / Partitions;
+
             ExtremeValues(JointType.HipLeft, 'X');
             ExtremeValues(JointType.HipRight, 'X');
 
@@ -652,6 +1282,13 @@ namespace Sessions
             Util.TTest(HipKneeSet1Left, HipKneeSet2Left, out meanDiffHipKnee1Left, out meanDiffHipKnee2Left, out tDiffHipKneeLeft, 
                        out dfDiffHipKneeLeft, out pValueDiffHipKneeLeft);
 
+            // Put it publicly
+            MeanDiffHipKnee1Left = meanDiffHipKnee1Left;
+            MeanDiffHipKnee2Left = meanDiffHipKnee2Left;
+            TDiffHipKneeLeft = tDiffHipKneeLeft;
+            DFDiffHipKneeLeft = dfDiffHipKneeLeft;
+            PValueDiffHipKneeLeft = pValueDiffHipKneeLeft;
+
             double meanDiffHipKnee1Right = 0;
             double meanDiffHipKnee2Right = 0;
             double tDiffHipKneeRight = 0;
@@ -661,6 +1298,13 @@ namespace Sessions
             // Hip-Knee differences [Right side]
             Util.TTest(HipKneeSet1Right, HipKneeSet2Right, out meanDiffHipKnee1Right, out meanDiffHipKnee2Right, out tDiffHipKneeRight,
                        out dfDiffHipKneeRight, out pValueDiffHipKneeRight);
+
+            // Put it publicly
+            MeanDiffHipKnee1Right = meanDiffHipKnee1Right;
+            MeanDiffHipKnee2Right = meanDiffHipKnee2Right;
+            TDiffHipKneeRight = tDiffHipKneeRight;
+            DFDiffHipKneeRight = dfDiffHipKneeRight;
+            PValueDiffHipKneeRight = pValueDiffHipKneeRight;
 
             double meanDiffKneeAnkle1Left = 0;
             double meanDiffKneeAnkle2Left = 0;
@@ -672,6 +1316,14 @@ namespace Sessions
             Util.TTest(KneeAnkleSet1Left, KneeAnkleSet2Left, out meanDiffKneeAnkle1Left, out meanDiffKneeAnkle2Left, out tDiffKneeAnkleLeft,
                        out dfDiffKneeAnkleLeft, out pValueDiffKneeAnkleLeft);
 
+            // Put it publicly
+            MeanDiffKneeAnkle1Left = meanDiffKneeAnkle1Left;
+            MeanDiffKneeAnkle2Left = meanDiffKneeAnkle2Left;
+            TDiffKneeAnkleLeft = tDiffKneeAnkleLeft;
+            DFDiffKneeAnkleLeft = dfDiffKneeAnkleLeft;
+            PValueDiffKneeAnkleLeft = pValueDiffKneeAnkleLeft;
+
+
             double meanDiffKneeAnkle1Right = 0;
             double meanDiffKneeAnkle2Right = 0;
             double tDiffKneeAnkleRight = 0;
@@ -681,7 +1333,32 @@ namespace Sessions
             // Knee-Ankle differences [Right side]
             Util.TTest(KneeAnkleSet1Right, KneeAnkleSet2Right, out meanDiffKneeAnkle1Right, out meanDiffKneeAnkle2Right, 
                         out tDiffKneeAnkleRight, out dfDiffKneeAnkleRight, out pValueDiffKneeAnkleRight);
+
+            // Put it publicly
+            MeanDiffKneeAnkle1Right = meanDiffKneeAnkle1Right;
+            MeanDiffKneeAnkle2Right = meanDiffKneeAnkle2Right;
+            TDiffKneeAnkleRight = tDiffKneeAnkleRight;
+            DFDiffKneeAnkleRight = dfDiffKneeAnkleRight;
+            PValueDiffKneeAnkleRight = pValueDiffKneeAnkleRight;
         }
+
+
+        /// <summary>
+        /// Check Hip vertical alignment between left and right sides.
+        /// </summary>
+        private void HipAlignment()
+        {
+            ExtremeValues(JointType.HipLeft, 'Y');
+            ExtremeValues(JointType.HipRight, 'Y');
+        }
+
+
+        private void ShoulderAlignment()
+        {
+            ExtremeValues(JointType.ShoulderLeft, 'Y');
+            ExtremeValues(JointType.ShoulderRight, 'Y');
+        }
+
 
         /// <summary>
         /// Loads recorded joint positions.
@@ -693,7 +1370,7 @@ namespace Sessions
 
             string filename = _session.SessionName + ".txt";
 
-            if(_positions.Count > 0)
+            if(_positions.Count > 0 && filename == _oldFilename)
             {
                 return;
             }
@@ -701,6 +1378,13 @@ namespace Sessions
             // Check if there is a data file for the selected session
             if (File.Exists(filename))
             {
+                _oldFilename = filename;
+                
+                if(_positions.Count > 0)
+                {
+                    _positions.Clear();
+                }
+
                 FileInfo file = new FileInfo(filename);
 
                 using (StreamReader sr = file.OpenText())
@@ -791,36 +1475,78 @@ namespace Sessions
 
             switch(pType)
             {
+                case JointType.ShoulderLeft:
+                    AverageYShoulderLeft = average;
+                    SDYShoulderLeft = sd;
+                    MinYShoulderLeft = pMin;
+                    MaxYShoulderLeft = pMax;
+                    AmpYShoulderLeft = Math.Abs(Math.Abs(MaxYShoulderLeft) - Math.Abs(MinYShoulderLeft));
+                    break;
+
                 case JointType.HipLeft:
-                    AverageHipLeft = average;
-                    SDHipLeft = sd;
-                    MinHipLeft = pMin;
-                    MaxHipLeft = pMax;
+
+                    if (pAxis == 'X')
+                    {
+                        AverageHipLeft = average;
+                        SDHipLeft = sd;
+                        MinHipLeft = pMin;
+                        MaxHipLeft = pMax;
+                    } else if(pAxis == 'Y')
+                    {
+                        AverageYHipLeft = average;
+                        SDYHipLeft = sd;
+                        MinYHipLeft = pMin;
+                        MaxYHipLeft = pMax;
+                        AmpYHipLeft = Math.Abs(Math.Abs(MaxYHipLeft) - Math.Abs(MinYHipLeft));
+                    }                    
                     break;
+
                 case JointType.KneeLeft:
-                    AverageKneeLeft = average;
-                    SDKneeLeft = sd;
-                    MinKneeLeft = pMin;
-                    MaxKneeLeft = pMax;
+                        AverageKneeLeft = average;
+                        SDKneeLeft = sd;
+                        MinKneeLeft = pMin;
+                        MaxKneeLeft = pMax;
                     break;
+
                 case JointType.AnkleLeft:
                     AverageAnkleLeft = average;
                     SDAnkleLeft = sd;
                     MinAnkleLeft = pMin;
                     MaxAnkleLeft = pMax;
                     break;
-                case JointType.HipRight:
-                    AverageHipRight = average;
-                    SDHipRight = sd;
-                    MinHipRight = pMin;
-                    MaxHipRight = pMax;
+
+                case JointType.ShoulderRight:
+                    AverageYShoulderRight = average;
+                    SDYShoulderRight = sd;
+                    MinYShoulderRight = pMin;
+                    MaxYShoulderRight = pMax;
+                    AmpYShoulderRight = Math.Abs(Math.Abs(MaxYShoulderRight) - Math.Abs(MinYShoulderRight));
                     break;
+
+                case JointType.HipRight:
+                    if (pAxis == 'X')
+                    {
+                        AverageHipRight = average;
+                        SDHipRight = sd;
+                        MinHipRight = pMin;
+                        MaxHipRight = pMax;
+                    } else if(pAxis == 'Y')
+                    {
+                        AverageYHipRight = average;
+                        SDYHipRight = sd;
+                        MinYHipRight = pMin;
+                        MaxYHipRight = pMax;
+                        AmpYHipRight = Math.Abs(Math.Abs(MaxYHipRight) - Math.Abs(MinYHipRight));
+                    } 
+                    break;
+
                 case JointType.KneeRight:
                     AverageKneeRight = average;
                     SDKneeRight = sd;
                     MinKneeRight = pMin;
                     MaxKneeRight = pMax;
                     break;
+
                 case JointType.AnkleRight:
                     AverageAnkleRight = average;
                     SDAnkleRight = sd;
