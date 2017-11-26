@@ -16,14 +16,26 @@ namespace Sessions
     /// </summary>
     class RecordViewModel : ObservableObject, IPageViewModel
     {
+        /// <summary>
+        /// Reference for main application
+        /// </summary>
         private ApplicationViewModel _app = null;
+
+
+        /// <summary>
+        /// Flags for enabling/disabling UI buttons 
+        /// </summary>
         private bool isPlayButtonEnabled = true;
         private bool isRecordButtonEnabled = true;
         private bool isStopButtonPressed = false;
 
+        /// <summary>
+        /// UI triggered functions.
+        /// </summary>
         private ICommand _playButtonCommand;
         private ICommand _recordButtonCommand;
         private ICommand _stopButtonCommand;
+
 
         private string lastFile = string.Empty;
 

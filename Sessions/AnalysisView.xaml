@@ -36,6 +36,7 @@
             <CheckBox Margin="20,5,0,0" Content="Has Calibration Data" IsChecked="{Binding Path=HasCalibration}" IsEnabled="False"/>
             <Button Margin="50,3,0,3" Content=" Start " Command="{Binding Path=StartCommand}" />
             <Button Margin="5,3,0,3" Content=" Stop " Command="{Binding Path=StopCommand}"/>
+            <Button Margin="5,3,0,3" Content=" Save " Command="{Binding Path=SaveCommand}" IsEnabled="{Binding Path=HasPlayed}" />
             <Label Margin="20,0,0,0" Content="{Binding Path=ExecutionStatus}" />
             <Label Margin="250,0,00,0" Content="#" />
             <Label  Content="{Binding Path=NumFrames}" Width="35" />
@@ -59,7 +60,8 @@
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
                 <RowDefinition Height="1*"/>
-                <RowDefinition Height="15*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="14*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width=".25*" />
@@ -92,7 +94,7 @@
             <TextBox Grid.Row="3" Grid.Column="4" x:Name="txtKneeRightX" Text="{Binding KneeRight.X, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="3" Grid.Column="5" x:Name="txtAnkleLeftX" Text="{Binding AnkleLeft.X, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="3" Grid.Column="6" x:Name="txtAnkleRightX" Text="{Binding AnkleRight.X, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
-            <TextBox Grid.Row="3" Grid.Column="7" x:Name="txtCalibrationX" Text="{Binding Path=CalibrationJoint.X}" Margin="5" IsEnabled="False" />
+            <TextBox Grid.Row="3" Grid.Column="7" x:Name="txtCalibrationX" Text="{Binding CalibrationJoint.X, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
 
             <Label Grid.Row="4" Grid.Column="0" Content="Y:" />
             <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtHipLeftY" Text="{Binding HipLeft.Y, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
@@ -101,7 +103,7 @@
             <TextBox Grid.Row="4" Grid.Column="4" x:Name="txtKneeRightY" Text="{Binding KneeRight.Y, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="4" Grid.Column="5" x:Name="txtAnkleLeftY" Text="{Binding AnkleLeft.Y, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="4" Grid.Column="6" x:Name="txtAnkleRightY" Text="{Binding AnkleRight.Y, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
-            <TextBox Grid.Row="4" Grid.Column="7" x:Name="txtCalibrationY" Text="{Binding Path=CalibrationJoint.Y}" Margin="5" IsEnabled="False" />
+            <TextBox Grid.Row="4" Grid.Column="7" x:Name="txtCalibrationY" Text="{Binding CalibrationJoint.Y, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             
             <Label Grid.Row="5" Grid.Column="0" Content="Z:" />
             <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtHipLeftZ" Text="{Binding HipLeft.Z, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
@@ -110,7 +112,7 @@
             <TextBox Grid.Row="5" Grid.Column="4" x:Name="txtKneeRightZ" Text="{Binding KneeRight.Z, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="5" Grid.Column="5" x:Name="txtAnkleLeftZ" Text="{Binding AnkleLeft.Z, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
             <TextBox Grid.Row="5" Grid.Column="6" x:Name="txtAnkleRightZ" Text="{Binding AnkleRight.Z, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
-            <TextBox Grid.Row="5" Grid.Column="7" x:Name="txtCalibrationZ" Text="{Binding Path=CalibrationJoint.Z}" Margin="5" IsEnabled="False" />
+            <TextBox Grid.Row="5" Grid.Column="7" x:Name="txtCalibrationZ" Text="{Binding CalibrationJoint.Z, Mode=OneWay, StringFormat=N3}" Margin="5" IsEnabled="False" />
 
             <Label Grid.Row="6" Grid.Column="0" Content="Lengths" />
             <Label Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Content="Thigh" HorizontalAlignment="Center" />
@@ -121,20 +123,25 @@
             <TextBox Grid.Row="7" Grid.Column="3" Text="{Binding LeftShankLength, Mode=OneWay, StringFormat=N3}" x:Name="txtLeftShankLen" IsEnabled="False" Margin="5"/>
             <TextBox Grid.Row="7" Grid.Column="4" Text="{Binding RightShankLength, Mode=OneWay, StringFormat=N3}" x:Name="txtRightShankLen" IsEnabled="False" Margin="5"/>
 
-            <Viewbox x:Name="kinectBodyViewbox" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
-                <Image Source="{Binding ImageSource}" Stretch="UniformToFill" />
+            <TextBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Text="Raw Captured" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="2" Text="ARMA Filtered" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBox Grid.Row="8" Grid.Column="4" Grid.ColumnSpan="2" Text="Double Holter Filtered" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBox Grid.Row="8" Grid.Column="6" Grid.ColumnSpan="2" Text="Infrared Image" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+            <Viewbox x:Name="kinectBodyViewbox" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+                <Image Source="{Binding ImageSource}" Height="1000" />
             </Viewbox>
 
-            <Grid Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Top">
+            <Grid Grid.Row="9" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center">
                 <Canvas Margin="5,5,5,5" Name="CanvasPosition" Height="300" Width="200" />
             </Grid>
 
-            <Viewbox x:Name="holtFilterViewBox" Grid.Row="8" Grid.Column="4" Grid.ColumnSpan="2" HorizontalAlignment="Center">
-                <Image Source="{Binding ImageSourceHolt}" Stretch="UniformToFill" />
+            <Viewbox x:Name="holtFilterViewBox" Grid.Row="9" Grid.Column="4" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+                <Image Source="{Binding ImageSourceHolt}" Height="1000" />
             </Viewbox>
 
-            <Viewbox x:Name="kinectIRViewBox" Grid.Row="8" Grid.Column="6" Grid.ColumnSpan="3" HorizontalAlignment="Center">
-                <Image Source="{Binding ImageSource}" Stretch="UniformToFill" />
+            <Viewbox x:Name="kinectIRViewBox" Grid.Row="9" Grid.Column="6" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+                <Image Source="{Binding ImageSource}" Height="1000" />
             </Viewbox>
         </Grid>
     </DockPanel>

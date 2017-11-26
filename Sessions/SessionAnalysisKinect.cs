@@ -46,10 +46,6 @@ namespace Sessions
         // Reference to the calling process
         private AnalysisViewModel _callingProcess;
 
-        // Stores all tracked points
-        CameraSpacePoint[] _record;
-        List<CameraSpacePoint[]> _allRecords;
-
         ColorSpacePoint[] historyTrackedJoints = new ColorSpacePoint[Body.JointCount]; 
 
         // ARMA filter reference for leg joints
@@ -113,7 +109,6 @@ namespace Sessions
             _callingProcess = calling;
 
             InitializeFilterARMA();
-            _allRecords = new List<CameraSpacePoint[]>();
 
             if (sensor != null)
             {
@@ -180,19 +175,6 @@ namespace Sessions
                            (_calibration.Position.Z == 0 || _p.Z >= (_calibration.Position.Z - _Zthreshold) && _p.Z <= (_calibration.Position.Z + _Zthreshold)))
                         {
                             _tracked++;
-
-                            // show raw data from calibration joint
-                            _callingProcess.CalibrationJoint = new Vector3(_p.X, _p.Y, _p.Z);
-
-                            _record = new CameraSpacePoint[Body.JointCount];
-
-                            for (int i = 0; i <= (int)JointType.ThumbRight; i++)
-                            {
-                                _record[i] = body.Joints[(JointType)i].Position;
-                            }
-
-                            // _allRecords.Add(_record);
-
                             // Head, Shoulders, Arm and trunk
                             _cpHead = ConvertJoint2ColorSpace(body.Joints[JointType.Head], filtersARMA[(int)JointType.Head]);
                             _cpShoulderLeft = ConvertJoint2ColorSpace(body.Joints[JointType.ShoulderLeft], filtersARMA[(int)JointType.ShoulderLeft]);
@@ -227,7 +209,6 @@ namespace Sessions
             _callingProcess.NumFrames = frameCount;
             _callingProcess.NotTracked = _notTracked;
             _callingProcess.Tracked = _tracked;
-            _callingProcess.Records = _allRecords;
         }
 
         /// <summary>

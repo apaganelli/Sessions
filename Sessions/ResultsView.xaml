@@ -5,8 +5,286 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Sessions"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="600" d:DesignWidth="600"
+             Loaded="UserControl_Loaded">
     <Grid>
-        <Label>This is the result user control!!!</Label>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <TextBlock>Total Frames:</TextBlock>
+            <TextBox Name="tbTotalFrames" Margin="15,0,10,0" Text="{Binding Path=TotalFrames, Mode=OneWay}" Width="40" IsEnabled="False" VerticalAlignment="Top"/>
+
+            <TextBlock># of Partitions:</TextBlock>
+            <TextBox Name="tbPartitions" Margin="15,0,10,0" Text="{Binding Path=Partitions}" Width="30" 
+                     VerticalAlignment="Top" TextChanged="tbPartitions_TextChanged"/>
+
+            <TextBlock>First set</TextBlock>
+            <TextBox Name="tbFirstSet" Margin="15,0,10,0" Text="{Binding Path=FirstSet, ValidatesOnExceptions=True}" Width="30" 
+                     VerticalAlignment="Top" TextChanged="tbFirstSet_TextChanged">
+                <Validation.ErrorTemplate>
+                    <ControlTemplate>
+                        <StackPanel>
+                            <!-- Placeholder for the TextBox itself -->
+                            <AdornedElementPlaceholder x:Name="textBox"/>
+                            <TextBlock Text="{Binding [0].ErrorContent}" Foreground="Red"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Validation.ErrorTemplate>
+            </TextBox>
+
+            <TextBlock>Second set</TextBlock>
+            <TextBox Name="tbSecondSet" Margin="15,0,10,0" Text="{Binding Path=SecondSet, ValidatesOnExceptions=True}" Width="30" VerticalAlignment="Top">
+                <Validation.ErrorTemplate>
+                    <ControlTemplate>
+                        <StackPanel>
+                            <!-- Placeholder for the TextBox itself -->
+                            <AdornedElementPlaceholder x:Name="textBox"/>
+                            <TextBlock Text="{Binding [0].ErrorContent}" Foreground="Red"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Validation.ErrorTemplate>
+            </TextBox>
+
+            <TextBlock Name="tkPartitionSize">Partition size</TextBlock>
+            <TextBox Name="tbPartitionSize" Margin="15,0,10,0" Text="{Binding Path=PartitionSize}" Width="50" VerticalAlignment="Top" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
+            <Button Margin="5,5,5,5" Name="btHipKneeAnkle" Command="{Binding Path=HKA_Command}" 
+                    VerticalAlignment="Top" Content="Check Hip-Knee-Ankle" Padding="5,4"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="25" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Hip-Knee-Ankle Results" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+            <Grid Grid.Row="1" ShowGridLines="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Left" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Right" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                <Grid Grid.Row="1" Grid.Column="0" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Hip" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Knee" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Ankle" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Mean" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="SD"   HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Max"  HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Min"  HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="Amplit." HorizontalAlignment="Center" />
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=AverageHipLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Path=AverageKneeLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Path=AverageAnkleLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Path=SDHipLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Path=SDKneeLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Path=SDAnkleLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Path=MaxHipLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding Path=MaxKneeLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding Path=MaxAnkleLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Path=MinHipLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding Path=MinKneeLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="4" Text="{Binding Path=MinAnkleLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="5" Text="{Binding Path=AmpHipLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="5" Text="{Binding Path=AmpKneeLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="5" Text="{Binding Path=AmpAnkleLeft, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="1" Grid.Column="1" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Mean" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="SD" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Max" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Min" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Amplit." HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Path=AverageHipRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Path=AverageKneeRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Path=AverageAnkleRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Path=SDHipRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Path=SDKneeRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Path=SDAnkleRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Path=MaxHipRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding Path=MaxKneeRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding Path=MaxAnkleRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding Path=MinHipRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding Path=MinKneeRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding Path=MinAnkleRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding Path=AmpHipRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="4" Text="{Binding Path=AmpKneeRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="4" Text="{Binding Path=AmpAnkleRight, Mode=OneWay, StringFormat=N4}" HorizontalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="2" Grid.Column="0" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.5*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1.5*" />
+                        <ColumnDefinition Width="0.75*" />
+                        <ColumnDefinition Width="0.75*" />
+                        <ColumnDefinition Width="1.2*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Text="Hip - Knee" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="1st Set" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="2nd Set" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Mean diff." HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="T" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="DF" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="P-Value" HorizontalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="2" Grid.Column="1" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="1st Set" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="2nd Set" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Mean diff." HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="T" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="DF" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="P-Value" HorizontalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="3" Grid.Column="0" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.5*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1.5*" />
+                        <ColumnDefinition Width="0.75*" />
+                        <ColumnDefinition Width="0.75*" />
+                        <ColumnDefinition Width="1.2*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Text="Knee - Ankle" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="1st Set" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="2nd Set" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Mean diff." HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="T" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="DF" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="P-Value" HorizontalAlignment="Center" />
+                </Grid>
+
+                <Grid Grid.Row="3" Grid.Column="1" ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="1st Set" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="2nd Set" HorizontalAlignment="Center" />
+
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Mean diff." HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="T" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="DF" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="P-Value" HorizontalAlignment="Center" />
+                </Grid>
+
+
+
+            </Grid>
+        </Grid>
+                
+        <StackPanel Grid.Row="3">
+            <Label>Alinhamento Quadril-Esquerdo-Quadril-Direito.</Label>
+            <Label>Análise da posição Y de um lado do quadril em relação ao outro durante a sessão. Média, desvio padrão, maior e menor diferença, menor e maior valor.</Label>
+
+            <Label>Análise da posição dos ombros.</Label>
+            <Label>Análise da distância entre os ombros, sua altura e maior e menor valor.</Label>
+        </StackPanel>
     </Grid>
 </UserControl>

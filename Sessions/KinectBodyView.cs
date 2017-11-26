@@ -120,6 +120,7 @@ namespace Sessions
         private Vector3 _kneeRight;
         private Vector3 _ankleLeft;
         private Vector3 _ankleRight;
+        private Vector3 _calibrationJoint;
 
         private double _leftThighLength;
         private double _leftShankLength;
@@ -136,8 +137,13 @@ namespace Sessions
         CameraSpacePoint[] holtJoints;
         ColorSpacePoint[] historyTrackedJoints = new ColorSpacePoint[Body.JointCount];
 
+        CameraSpacePoint[] points;
+
         private DrawingGroup dgHolt;
         private DrawingImage imageSourceHolt;
+
+        // Pointer to calling ViewModel class
+        private AnalysisViewModel _analysisViewModel;
 
         public KinectBodyView()
         {
@@ -148,7 +154,8 @@ namespace Sessions
         /// </summary>
         /// <param name="kinectSensor">Active instance of the Kinect Sensor</param>
         /// <param name="calibrationData">Calibration information</param>
-        public KinectBodyView(KinectSensor kinectSensor, CalibrationModel calibrationData)
+        /// <param name="analysisViewModel">Pointer to calling ViewModel</param>
+        public KinectBodyView(KinectSensor kinectSensor, CalibrationModel calibrationData, AnalysisViewModel analysisViewModel)
         {
             if (kinectSensor == null)
             {
@@ -156,6 +163,8 @@ namespace Sessions
             }
 
             sensor = kinectSensor;
+            _analysisViewModel = analysisViewModel;
+
             ResetTimers();
 
             if (calibrationData != null)
@@ -469,6 +478,22 @@ namespace Sessions
         }
 
         /// <summary>
+        /// Gets/sets calibration joint position information.
+        /// </summary>
+        public Vector3 CalibrationJoint
+        {
+            get { return _calibrationJoint; }
+            set
+            {
+                if (value != _calibrationJoint)
+                {
+                    _calibrationJoint = value;
+                    OnPropertyChanged("CalibrationJoint");
+                }
+            }
+        }
+
+        /// <summary>
         /// Disposes the BodyFrameReader
         /// </summary>
         public void Dispose()
@@ -587,6 +612,13 @@ namespace Sessions
                                     {
                                         HoltFilter.UpdateFilter(body);
                                         holtJoints = HoltFilter.GetFilteredJoints();
+                                        points = new CameraSpacePoint[25];
+                                        int i = 0;
+                                        foreach(CameraSpacePoint joint in holtJoints)
+                                        {
+                                            points[i++] = joint;
+                                        }
+                                        _analysisViewModel.Records.Add(points);
                                     }
 
                                     // convert the joint points to depth (display) space
@@ -647,7 +679,9 @@ namespace Sessions
         /// </summary>
         /// <param name="joints">Body joints to be shown</param>
         private void UpdateJointPosition(IReadOnlyDictionary<JointType, Joint> joints)
-        {            
+        {
+            CameraSpacePoint cj = joints[_calib.JointType].Position;
+            CalibrationJoint = new Vector3(cj.X, cj.Y, cj.Z);
             HipLeft = new Vector3(joints[JointType.HipLeft].Position.X, joints[JointType.HipLeft].Position.Y, joints[JointType.HipLeft].Position.Z);
             HipRight = new Vector3(joints[JointType.HipRight].Position.X, joints[JointType.HipRight].Position.Y, joints[JointType.HipRight].Position.Z);
             KneeRight = new Vector3(joints[JointType.KneeRight].Position.X, joints[JointType.KneeRight].Position.Y, joints[JointType.KneeRight].Position.Z);

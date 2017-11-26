@@ -7,6 +7,9 @@ using Microsoft.Kinect;
 using System.Collections.ObjectModel;
 using Microsoft.Kinect.Tools;
 using System.Threading;
+using System.Windows.Threading;
+using System.Windows;
+using System.IO;
 
 namespace Sessions
 {
@@ -80,11 +83,6 @@ namespace Sessions
         private string _executionStatus;
 
         /// <summary>
-        /// Holds infomration of the joint used for calibration.
-        /// </summary>
-        private Vector3 _calibrationJoint;
-
-        /// <summary>
         /// Number of read frames.
         /// </summary>
         private Int64 _numFrames = 0;
@@ -110,6 +108,11 @@ namespace Sessions
         private bool _hasCalibration;
 
         /// <summary>
+        /// Async function for playing video list.
+        /// </summary>
+        OneArgDelegate playback = null;
+
+        /// <summary>
         /// Flag to keep track is the video clip is playing.
         /// </summary>
         private bool _isPlaying = false;
@@ -129,11 +132,14 @@ namespace Sessions
         /// </summary>
         private List<CameraSpacePoint[]> _records;
 
+        private bool _hasPlayed;
+
         /// <summary>
         /// Methods that handle (start and stop) commands when related buttons are pressed on the view.
         /// </summary>
         private ICommand _startCommand;
         private ICommand _stopCommand;
+        private ICommand _saveCommand;
 
         #region Constructors
 
@@ -162,9 +168,6 @@ namespace Sessions
                 // Opens the sensor.
                 _sensor.Open();
             }
-
-            // Updates properties with context information.
-            LoadExecutionModel();
         }
 
         #endregion // Constructors
@@ -253,7 +256,6 @@ namespace Sessions
                 }
                 return _startCommand;
             }
-
         }
 
         /// <summary>
@@ -270,6 +272,23 @@ namespace Sessions
                 return _stopCommand;
             }
         }
+
+
+        /// <summary>
+        /// Relay command for saving recorded joint points.
+        /// </summary>
+        public ICommand SaveCommand
+        {
+            get
+            {
+                if (_saveCommand == null)
+                {
+                    _saveCommand = new RelayCommand(param => Save(), param => _hasPlayed);
+                }
+                return _saveCommand;
+            }
+        }
+
 
         /// <summary>
         /// Pointer to the UI canvas where the skeleton will be shown.
@@ -324,22 +343,6 @@ namespace Sessions
         }
 
         /// <summary>
-        /// Gets/sets calibration joint position information.
-        /// </summary>
-        public Vector3 CalibrationJoint
-        {
-            get { return _calibrationJoint; }
-            set
-            {
-                if(value != _calibrationJoint)
-                {
-                    _calibrationJoint = value;
-                    OnPropertyChanged("CalibrationJoint");
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets/sets the number of read frames.
         /// </summary>
         public Int64 NumFrames
@@ -387,10 +390,29 @@ namespace Sessions
             }
         }
 
-
-        public bool IsStopped
+        /// <summary>
+        /// Gets/sets has played a clip flag.
+        /// </summary>
+        public bool HasPlayed
         {
-            get { return _stopPlaying; }
+            get { return _hasPlayed; }
+            set
+            {
+                if (value != _hasPlayed)
+                {
+                    _hasPlayed = value;
+                    OnPropertyChanged("HasPlayed");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets stop playing flag status
+        /// </summary>
+        /// <returns></returns>
+        private bool getStopPlaying()
+        {
+            return _stopPlaying;
         }
 
 
@@ -414,7 +436,7 @@ namespace Sessions
                 HasCalibration = _session.Calibration != null && _session.Calibration.Position != null ? true : false;
 
                 // Instantiate a body view which will show a skeleton based on the depth and body index images.
-                kinectBodyView = new KinectBodyView(_sensor, _session.Calibration);
+                kinectBodyView = new KinectBodyView(_sensor, _session.Calibration, this);
 
                 // Instantiate an IR view which will show Infrared captured image.
                 kinectIRView = new KinectIRView(_sensor);
@@ -427,6 +449,9 @@ namespace Sessions
             // Initialize list of read joint information (to be saved or used for statistical analysis in other classes.
             Records = null;
             Records = new List<CameraSpacePoint[]>();
+
+            // No clip have been played yet. Nothing to save.
+            _hasPlayed = false;
         }
 
         /// <summary>
@@ -439,9 +464,9 @@ namespace Sessions
                 ExecutionStatus = "Starting analysis";
 
                 // Send the video list to be played.
-                OneArgDelegate playback = new OneArgDelegate(PlaybackClip);
                 _isPlaying = true;
                 _stopPlaying = false;
+                playback = new OneArgDelegate(PlaybackClip);
                 playback.BeginInvoke(_session.VideoList, null, null);
 
                 // Instantiate the object that will analysed read frames appropriately.
@@ -462,6 +487,31 @@ namespace Sessions
         }
 
         /// <summary>
+        /// Save joint positions to a file named with session name.
+        /// Each line of the file will be a sequence of X,Y,Z positions for each of the 25 joints.
+        /// The number of lines will be the number of calibrated frames recorded in a session.
+        /// </summary>
+        private void Save()
+        {
+            FileInfo file = new FileInfo(_session.SessionName + ".txt");
+            StreamWriter text = file.CreateText();
+
+            foreach (CameraSpacePoint[] joints in Records)
+            {
+                foreach(CameraSpacePoint joint in joints)
+                {
+                    text.Write(joint.X.ToString("F3") + ";" + joint.Y.ToString("F3") + ";" + joint.Z.ToString("F3") + ":");
+                }
+                text.WriteLine();
+            }
+
+            text.Close();
+
+            ExecutionStatus = "Data saved at: " + Directory.GetCurrentDirectory() + "\\" + _session.SessionName + ".txt";
+            HasPlayed = false;
+        }
+
+        /// <summary>
         /// Playback a list of clips
         /// </summary>
         /// <param name="videos">ObservableCollection of VideoModel objects that contains a filename list of the clips to be played.</param>
@@ -474,6 +524,7 @@ namespace Sessions
                 client.ConnectToService();
                 KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection();
                 int i = 0;
+                string txt;
 
                 // For each video in the list of videos do:
                 while (i < videos.Count)
@@ -482,7 +533,8 @@ namespace Sessions
 
                     if (!string.IsNullOrEmpty(video.Filename))
                     {
-                        // "Playing " + video.Filename, i, videos.Count
+                        txt = "Playing " + video.Filename + " - " + (i+1) + " / " + videos.Count;
+                        Application.Current.Dispatcher.Invoke(new Action(() => { ExecutionStatus = txt; }));                       
 
                         using (KStudioPlayback playback = client.CreatePlayback(video.Filename))
                         {
@@ -490,24 +542,24 @@ namespace Sessions
                             // a specific time.
                             playback.Start();
 
-                            while (playback.State == KStudioPlaybackState.Playing && ! IsStopped)
+                            while (playback.State == KStudioPlaybackState.Playing && ! getStopPlaying())
                             {
                                 Thread.Sleep(500);
-
-                                if(IsStopped)
-                                {
-                                    break;
-                                }
                             }
 
                             if (playback.State == KStudioPlaybackState.Playing)
                             {
                                 playback.Stop();
+
+                                if(getStopPlaying())
+                                {
+                                    break;
+                                }
                             }
 
                             _isPlaying = false;
 
-                            if (_stopPlaying)
+                            if (getStopPlaying())
                             {
                                 client.DisconnectFromService();
                                 return;
@@ -516,6 +568,11 @@ namespace Sessions
                     }
                     i++;
                 }
+
+                // Clips have been played. Has something to save.
+                Application.Current.Dispatcher.Invoke(new Action(() => 
+                {HasPlayed = true; StopPlay(); }));
+
                 client.DisconnectFromService();
             }
         }

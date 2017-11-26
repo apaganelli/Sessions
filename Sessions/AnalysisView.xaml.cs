@@ -14,6 +14,7 @@ namespace Sessions
     {
         // Holds the data context of the view.
         private AnalysisViewModel context;
+        private KinectBodyView kbv;
 
         public AnalysisView()
         {
@@ -51,10 +52,9 @@ namespace Sessions
 
             // The data context joint positions is based on another class that is only instantiated
             // after the creation of this User Control. Then, it is necessary update UI objects with this data context.
-            
             this.kinectIRViewBox.DataContext = context.GetKinectIRView();
+            this.kbv = context.GetKinectBodyView();
 
-            KinectBodyView kbv = context.GetKinectBodyView();
             this.kinectBodyViewbox.DataContext = kbv;
             this.holtFilterViewBox.DataContext = kbv;
 
@@ -78,6 +78,10 @@ namespace Sessions
             this.txtAnkleRightY.DataContext = kbv;
             this.txtAnkleLeftZ.DataContext = kbv;
             this.txtAnkleRightZ.DataContext = kbv;
+
+            this.txtCalibrationX.DataContext = kbv;
+            this.txtCalibrationY.DataContext = kbv;
+            this.txtCalibrationZ.DataContext = kbv;
 
             this.txtLeftShankLen.DataContext = kbv;
             this.txtLeftThighLen.DataContext = kbv;
