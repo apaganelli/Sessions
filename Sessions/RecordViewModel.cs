@@ -87,8 +87,10 @@ namespace Sessions
 
         public RecordViewModel(ApplicationViewModel app)
         {
+            // A reference for main controller.
             _app = app;
 
+            // Gets the maximum duration for recording a clip.
             int maxDuration = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["MAX_RECORD_DURATION"]);
 
             duration = TimeSpan.FromSeconds(maxDuration);

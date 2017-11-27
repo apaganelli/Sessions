@@ -58,7 +58,7 @@
 
             <Label Grid.Row="1" Grid.Column="0" Content="Initial time" HorizontalAlignment="Center"/>
             <TextBox Grid.Row="1" Grid.Column="1" Width="120" Height="30" Text="{Binding Path=InitialTime}" 
-                     Margin="20,10,5,10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                     Margin="10,10,5,10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <Label Margin="160,10,0,0" Grid.Row="1" Grid.Column="1" Content="ms" />
 
             <Label Grid.Row="2" Grid.Column="0" Content="Joint estimated position (X, Y, Z)" HorizontalAlignment="Center" VerticalAlignment="Top"/>

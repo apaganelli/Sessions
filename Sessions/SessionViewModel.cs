@@ -17,21 +17,49 @@ namespace Sessions
     /// <summary>
     /// Author: Antonio Iyda Paganelli
     /// 
-    /// SessionModelView is used to edit or create a new Session SessionModel. Actually, it is not a view, but
-    /// another controller to SessionsView.
+    /// SessionModelView is used to edit or create a new Session SessionModel.
     /// </summary>
     class SessionViewModel : ObservableObject, IPageViewModel
     {
+        /// <summary>
+        /// Reference to main controller.
+        /// </summary>
         private ApplicationViewModel _appViewModel;
+
+        /// <summary>
+        /// Holds session information
+        /// </summary>
         private SessionModel _session;
+
+        /// <summary>
+        /// Points out the last visited page. To return to it on finish.
+        /// </summary>
         private IPageViewModel _previousPage;
 
+        /// <summary>
+        /// Actions executed from interface.
+        /// </summary>
         private ICommand _saveSessionCommand;
         private ICommand _cancelSessionCommand;
 
+        /// <summary>
+        /// Internal flag for not reading the session data all the time.
+        /// </summary>
         private bool _loaded = false;
+
+        /// <summary>
+        /// Holds a list of session data.
+        /// </summary>
         private List<SessionModel> _allSessions = new List<SessionModel>();
+
+        /// <summary>
+        /// Used for reading the session data file that is stored in XML format.
+        /// </summary>
         private XmlDocument _xmlSessionDoc = null;
+
+        /// <summary>
+        /// Hold which operation has to be performed.
+        /// </summary>
         private string Operation = "Nil";
 
         private string _buttonText = "Save";
@@ -101,7 +129,7 @@ namespace Sessions
             _session = LoadSession(xNode);
         }
 
-
+#region Properties
         public string ButtonText
         {
             get { return _buttonText; }
@@ -224,8 +252,9 @@ namespace Sessions
         {
             get { return _session; }
         }
+        #endregion
 
-
+        #region commands
         public ICommand CancelSessionCommand
         {
             get
@@ -251,6 +280,9 @@ namespace Sessions
                 return _saveSessionCommand;
             }
         }
+
+#endregion
+
 
         public List<SessionModel> AllSessions
         {

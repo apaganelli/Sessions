@@ -21,22 +21,34 @@ namespace Sessions
         private int _sessionId;
         private int _selectedSessionId = 0; 
         private SessionModel _currentSession;
+        private string _status;
 
         // Pointer to the controller of this object. Used to inform to change pages.
         private ApplicationViewModel _applicationViewModel;
 
+
+        // Actions on the UserObject. (new, edit, delete and select the current session).
         private ICommand _newSessionCommand; 
         private ICommand _editSessionCommand;
         private ICommand _deleteSessionCommand;
         private ICommand _selectSessionCommand;
 
-        #endregion //Fields
+        #endregion Fields
 
+
+        /// <summary>
+        /// Primary Constructor
+        /// </summary>
+        /// <param name="appViewModel">Reference to main controller. ApplicationViewModel</param>
         public SessionsViewModel(ApplicationViewModel appViewModel)
         {
             _applicationViewModel = appViewModel;
         }
 
+        #region Properties
+        /// <summary>
+        /// Gets/sets selected session ID.
+        /// </summary>
         public int SelectedSessionId
         {
             get { return _selectedSessionId; }
@@ -49,6 +61,9 @@ namespace Sessions
             }
         }
        
+        /// <summary>
+        /// Gets/sets current object class.
+        /// </summary>
         public SessionModel CurrentSession
         {
             get { return _currentSession; }
@@ -61,6 +76,23 @@ namespace Sessions
                 }
             }
         }
+
+        /// <summary>
+        /// Shows status messages.
+        /// </summary>
+        public String Status
+        {
+            get { return _status; }
+            set
+            {
+                if(_status != value)
+                {
+                    _status = value;
+                    OnPropertyChanged("Status");
+                }
+            }
+        }
+
 
         public ICommand NewSessionCommand
         {
@@ -132,7 +164,10 @@ namespace Sessions
         {
             get { return "Sessions View"; }
         }
+        #endregion
 
+
+        #region Commands
         /// <summary>
         /// Enter a new XML session record.
         /// </summary>
@@ -158,8 +193,9 @@ namespace Sessions
         private void SelectSession()
         {
             SelectedSessionId = SessionId;
-            MessageBox.Show("Session ID: " + SessionId.ToString() + " Selected", "Selected", MessageBoxButton.OK);
+            Status = "Session ID " + SessionId.ToString() + " selected.";            
         }
+#endregion
     }
 }
 

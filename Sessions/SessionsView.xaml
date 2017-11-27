@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Sessions"
         mc:Ignorable="d"
-        Height="450" Width="650">
+        Height="450" Width="850">
 
     <UserControl.Resources>
+        <!-- Session View Model - EDIT -->
         <DataTemplate DataType="{x:Type local:SessionViewModel}">
            <Border BorderBrush="Black" BorderThickness="1" Padding="20">
                 <Grid Background="DodgerBlue">
@@ -44,11 +45,11 @@
                     <TextBox Grid.Row="2" Grid.Column="1"  Text="{Binding Path=SessionDate}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Thigh Length" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Thigh Length (m)" VerticalAlignment="Center" />
                     <TextBox Grid.Row="3" Grid.Column="1"  Text="{Binding Path=ThighLength}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shank Length" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shank Length (m)" VerticalAlignment="Center" />
                     <TextBox Grid.Row="4" Grid.Column="1"  Text="{Binding Path=ShankLength}" Width="100" Height="22"
                              HorizontalAlignment="Left" />
 
@@ -99,13 +100,14 @@
 
                     <Button Grid.Row="8" Grid.Column="0" Width="80" Content="{Binding Path=ButtonText}" x:Name="btSave" 
                             HorizontalAlignment="Left" Command="{Binding SaveSessionCommand}" Loaded="btSave_Loaded"  />
-                    
+
                     <Button Grid.Row="8" Grid.Column="1" Width="80" Content="Cancel" Command="{Binding CancelSessionCommand}"
                             HorizontalAlignment="Left" />
                 </Grid>
             </Border>
         </DataTemplate>
-
+       
+        <!-- Sessions View Model LIST -->
         <DataTemplate DataType="{x:Type local:SessionsViewModel}">
             <Grid Background="DodgerBlue">
                 <Grid.DataContext>
@@ -118,7 +120,7 @@
                     </DataTemplate>
 
                     <DataTemplate x:Key="videoItemTemplate" >
-                        <Label Content="{Binding}" />
+                        <Label Content="{Binding}" Foreground="White" Background="CadetBlue"/>
                     </DataTemplate>
                     
                     <Style TargetType="{x:Type Control}" x:Key="baseStyle" >
@@ -132,16 +134,19 @@
                 </Grid.Resources>
                 
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="10*" />
-                    <RowDefinition Height="80*" />
-                    <RowDefinition Height="10*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="150*" />
                     <ColumnDefinition Width="350*" />
                 </Grid.ColumnDefinitions>
 
-                <Label Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Content="List of Recorded Sessions" />
+                <Label Grid.Row="0" Grid.Column="0" Content="List of Recorded Sessions" />
+                <Label Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Content="Details" />
 
                 <ListBox x:Name="SessionList" Margin="10,0,0,20" Grid.Row="1" Grid.Column="0"
                  ItemsSource="{Binding}" ItemTemplate="{StaticResource sessionItemTemplate }"                         
@@ -165,45 +170,45 @@
                         <ColumnDefinition Width="70*" />
                     </Grid.ColumnDefinitions>
                     
-                    <Label Grid.Row="0" Grid.Column="0"  Content="Id" />
-                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding XPath=@Id, UpdateSourceTrigger=PropertyChanged}" />
+                    <Label Grid.Row="0" Grid.Column="0"  Content="Id" Margin="20,0,0,0"/>
+                    <Label Grid.Row="0" Grid.Column="1" Content="{Binding XPath=@Id, UpdateSourceTrigger=PropertyChanged}" Foreground="White"/>
                     <TextBox Grid.Row="0" Grid.Column="1" x:Name="lbId" TextChanged="lbId_TextChanged" Visibility="Hidden"
                            Text="{Binding XPath=@Id}" />
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="Date" />
-                    <Label Grid.Row="1" Grid.Column="1"  Content="{Binding XPath=@Date}" />
+                    <Label Grid.Row="1" Grid.Column="0" Content="Date" Margin="20,0,0,0"/>
+                    <Label Grid.Row="1" Grid.Column="1"  Content="{Binding XPath=@Date}" Foreground="White" />
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="Thigh length" />
-                    <Label Grid.Row="2" Grid.Column="1"  Content="{Binding XPath=@Thigh}" />
+                    <Label Grid.Row="2" Grid.Column="0" Content="Thigh length (m)" Margin="20,0,0,0" />
+                    <Label Grid.Row="2" Grid.Column="1"  Content="{Binding XPath=@Thigh}" Foreground="White"/>
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="Shank length" />
-                    <Label Grid.Row="3" Grid.Column="1"  Content="{Binding XPath=@Shank}" />
+                    <Label Grid.Row="3" Grid.Column="0" Content="Shank length (m)" Margin="20,0,0,0"/>
+                    <Label Grid.Row="3" Grid.Column="1"  Content="{Binding XPath=@Shank}" Foreground="White"/>
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="Modality" />
-                    <Label Grid.Row="4" Grid.Column="1"  Content="{Binding XPath=@Modality}" />
+                    <Label Grid.Row="4" Grid.Column="0" Content="Modality" Margin="20,0,0,0"/>
+                    <Label Grid.Row="4" Grid.Column="1"  Content="{Binding XPath=@Modality}" Foreground="White"/>
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="Type" />
-                    <Label Grid.Row="5" Grid.Column="1"  Content="{Binding XPath=@Type}" />
+                    <Label Grid.Row="5" Grid.Column="0" Content="Type" Margin="20,0,0,0"/>
+                    <Label Grid.Row="5" Grid.Column="1"  Content="{Binding XPath=@Type}" Foreground="White"/>
 
-                    <Label Grid.Row="6" Grid.Column="0" Content="Video List" />
+                    <Label Grid.Row="6" Grid.Column="0" Content="Video List" Margin="20,0,0,0"/>
                     <ComboBox x:Name="VideoList" Margin="0,0,8,20" Grid.Row="6" Grid.Column="1"
                     ItemsSource="{Binding XPath=Video}" ItemTemplate="{StaticResource videoItemTemplate }"
                     ScrollViewer.HorizontalScrollBarVisibility="Visible"          
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     IsSynchronizedWithCurrentItem="True" Visibility="Visible" />
 
-                    <Label Grid.Row="7" Grid.Column="0" Content="Video Power" />
+                    <Label Grid.Row="7" Grid.Column="0" Content="Video Power" Margin="20,0,0,0"/>
                     <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal">
                         <Label DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
-                               Content="{Binding XPath=@Power}" Margin="5,0,40,0"/>
+                               Content="{Binding XPath=@Power}" Margin="5,0,40,0" Foreground="White"/>
 
                         <CheckBox DataContext="{Binding ElementName=VideoList, Path=SelectedItem}" 
                              Content="Calibration" IsChecked="{Binding XPath=@Calibration}" IsEnabled="False" 
-                                  Margin="0,10"/>
+                                  Margin="70,10"/>
                     </StackPanel>
                 </Grid>
 
-                <Grid Grid.Row="2" Grid.ColumnSpan="2">
+                <Grid Grid.Row="2" Grid.ColumnSpan="2" VerticalAlignment="Bottom">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />
                         <ColumnDefinition />
@@ -223,6 +228,12 @@
                     <Button Grid.Column="3" Content="Select" DockPanel.Dock="Right" Margin="10,2" VerticalAlignment="Center"
                         Command="{Binding DataContext.SelectSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" IsDefault="True" Width="100" />
                 </Grid>
+
+               <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
+                          Text="{Binding DataContext.Status, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" 
+                          IsEnabled="False" 
+                          VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                          Margin="10,20,10,0" FontSize="18" FontWeight="DemiBold" Foreground="WhiteSmoke"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>

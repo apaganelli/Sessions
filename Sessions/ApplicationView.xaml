@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Sessions"
         mc:Ignorable="d"
-        Title="Sessions Application" Height="300" Width="450"
+        Title="Sessions Application" Height="300" Width="850"
         WindowState="Maximized">
     
+    <!-- Main page controller interface. Has a tabitem for each module of the application -->
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:SessionsViewModel}">
             <local:SessionsView />
@@ -36,10 +37,7 @@
 
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="E_xit" Click="MenuItem_Click"/>
-            </MenuItem>
-
+            <MenuItem Header="_Exit" Click="MenuItem_Click" />
         </Menu>
 
     <TabControl SelectionChanged="TabControl_SelectionChanged">
