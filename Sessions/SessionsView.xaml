@@ -4,10 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Sessions"
+        xmlns:properties="clr-namespace:Sessions.Properties"             
         mc:Ignorable="d"
-        Height="450" Width="850">
+        Height="450" Width="850"
+             Loaded="UserControl_Loaded">
 
     <UserControl.Resources>
+        <XmlDataProvider x:Key="Sessions" x:Name="SessionsInventory" Source="C:\Users\anton\source\repos\Sessions\Sessions\bin\x64\Debug\Sessions.xml" XPath="Sessions/Session" />
+
         <!-- Session View Model - EDIT -->
         <DataTemplate DataType="{x:Type local:SessionViewModel}">
            <Border BorderBrush="Black" BorderThickness="1" Padding="20">
@@ -111,7 +115,7 @@
         <DataTemplate DataType="{x:Type local:SessionsViewModel}">
             <Grid Background="DodgerBlue">
                 <Grid.DataContext>
-                    <XmlDataProvider x:Name="SessionsInventory"  Source="C:\Users\anton\source\repos\Sessions\Sessions\bin\Debug\Sessions2.xml"  XPath="Sessions/Session" />
+                    <StaticResource ResourceKey="Sessions" />
                 </Grid.DataContext>
 
                 <Grid.Resources>

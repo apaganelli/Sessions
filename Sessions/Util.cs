@@ -151,11 +151,11 @@ namespace Sessions
             // Calculates the p value.
             p = Student(t, df); // Cumulative two-tail density
 
-            Console.WriteLine("mean of x = " + meanX.ToString("F2"));
-            Console.WriteLine("mean of y = " + meanY.ToString("F2"));
-            Console.WriteLine("t = " + t.ToString("F4"));
-            Console.WriteLine("df = " + df.ToString("F3"));
-            Console.WriteLine("p-value = " + p.ToString("F5"));
+            // Console.WriteLine("mean of x = " + meanX.ToString("F2"));
+            // Console.WriteLine("mean of y = " + meanY.ToString("F2"));
+            // Console.WriteLine("t = " + t.ToString("F4"));
+            // Console.WriteLine("df = " + df.ToString("F3"));
+            // Console.WriteLine("p-value = " + p.ToString("F5"));
         }
     }
 }

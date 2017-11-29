@@ -141,6 +141,9 @@ namespace Sessions
             get { return "Session View"; }
         }
 
+        /// <summary>
+        /// Gets/sets session Id.
+        /// </summary>
         public int SessionId
         {
             get { return _session.SessionId; }
@@ -150,6 +153,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets session name.
+        /// </summary>
         public string SessionName
         {
             get { return _session.SessionName; }
@@ -159,6 +165,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets session date (string format)
+        /// </summary>
         public string SessionDate
         {
             get { return _session.SessionDate; }
@@ -173,6 +182,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets thigh length
+        /// </summary>
         public double ThighLength
         {
             get { return _session.ThighLength; }
@@ -186,6 +198,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets shank length
+        /// </summary>
         public double ShankLength
         {
             get { return _session.ShankLength; }
@@ -199,6 +214,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets/sets modality (running, cycling, rowing, free style etc)
+        /// </summary>
         public string Modality
         {
             get { return _session.Modality; }
@@ -212,6 +230,9 @@ namespace Sessions
             }
         }
 
+        /// <summary>
+        /// Gets / Sets session type: continous, progressive, interval, random/fartlek.
+        /// </summary>
         public string SessionType
         {
             get { return _session.SessionType; }
@@ -224,6 +245,10 @@ namespace Sessions
                 }
             }
         }
+
+        /// <summary>
+        /// Gets / sets list of video clips associated to session
+        /// </summary>
         public ObservableCollection<VideoModel> VideoList
         {
             get { return _session.VideoList; }
@@ -527,7 +552,7 @@ namespace Sessions
             }
 
             _xmlSessionDoc.Save(System.Configuration.ConfigurationManager.AppSettings["XmlSessionsFile"]);
-
+            
             // Sort the file if a new item was created.
             // We open the file again because we are using XDocument format instead of XMLDocument as above.
             if (Operation == "Create" || Operation == "Edit")

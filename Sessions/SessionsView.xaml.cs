@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Sessions
@@ -12,6 +14,8 @@ namespace Sessions
     /// </summary>
     public partial class SessionsView : UserControl
     {
+        XmlDataProvider dataProvider;
+        
         public SessionsView()
         {
             InitializeComponent();
@@ -67,7 +71,11 @@ namespace Sessions
         {
             SessionsViewModel session = (SessionsViewModel)this.DataContext;
             TextBox txt = (TextBox)sender;
-            session.SessionId = Int32.Parse(txt.Text);
+
+            if (txt.Text != "")
+            {
+                session.SessionId = Int32.Parse(txt.Text);
+            }
         }
 
         private void btSave_Loaded(object sender, RoutedEventArgs e)
@@ -78,6 +86,20 @@ namespace Sessions
             {
                 button.Background = Brushes.Red;
             }
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            var resource = this.FindResource("Sessions");
+
+            if (resource != null)
+            {
+                string xmlFilename = System.Configuration.ConfigurationManager.AppSettings["xmlSessionsFile"];
+                dataProvider = new XmlDataProvider();
+                dataProvider.Source = new Uri(@xmlFilename);
+                (resource as XmlDataProvider).Source = dataProvider.Source;
+            }
+
         }
     }
 }

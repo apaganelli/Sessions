@@ -22,6 +22,7 @@ namespace Sessions
         private List<IPageViewModel> _pageViewModels;
 
         private SessionsViewModel _sessionsViewModel;           // List of sessions
+        private WelcomeViewModel _welcomeViewModel;
 
         /// <summary>
         /// The constructor activate the application default page and selects it as the active page.
@@ -35,8 +36,16 @@ namespace Sessions
             // Add all navigation pages.
             PageViewModels.Add(_sessionsViewModel);
  
-            // Set up initial page.
-            CurrentPageViewModel = PageViewModels[0];
+            if (System.Configuration.ConfigurationManager.AppSettings["FirstTime"] == "T")
+            {
+                _welcomeViewModel = new WelcomeViewModel(this);
+                PageViewModels.Add(_welcomeViewModel);
+                CurrentPageViewModel = PageViewModels[1];
+            } else
+            {
+                // Set up initial page.
+                CurrentPageViewModel = PageViewModels[0];
+            }
         }
 
         public SessionsViewModel SessionsViewModel

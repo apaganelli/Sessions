@@ -6,10 +6,15 @@
         xmlns:local="clr-namespace:Sessions"
         mc:Ignorable="d"
         Title="Sessions Application" Height="300" Width="850"
-        WindowState="Maximized">
+        WindowState="Maximized"
+        Loaded="Window_Loaded">
     
     <!-- Main page controller interface. Has a tabitem for each module of the application -->
     <Window.Resources>
+        <DataTemplate DataType="{x:Type local:WelcomeViewModel}">
+            <local:WelcomeView />
+        </DataTemplate>
+        
         <DataTemplate DataType="{x:Type local:SessionsViewModel}">
             <local:SessionsView />
         </DataTemplate>
@@ -41,7 +46,11 @@
         </Menu>
 
     <TabControl SelectionChanged="TabControl_SelectionChanged">
-        <TabItem Header="Sessions" x:Name="TabItemSessions">
+            <TabItem Header="Welcome" x:Name="TabItemWelcome">
+                <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
+            </TabItem>
+        
+            <TabItem Header="Sessions" x:Name="TabItemSessions">
             <ContentControl Content="{Binding Path=CurrentPageViewModel}" />
         </TabItem>
 

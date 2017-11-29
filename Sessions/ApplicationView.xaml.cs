@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +13,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Sessions
 {
@@ -24,6 +28,8 @@ namespace Sessions
     /// </summary>
     public partial class ApplicationView : Window
     {
+        private SessionsViewModel sessionsViewModel = null;
+        private WelcomeViewModel welcomeViewModel = null;
         private RecordViewModel recordViewModel = null;
         private CalibrationViewModel calViewModel = null;
         private AnalysisViewModel exeViewModel = null;
@@ -47,7 +53,15 @@ namespace Sessions
             {
                 ApplicationViewModel app = (ApplicationViewModel)DataContext;
 
-                if(TabItemRecord.IsSelected)
+                if(TabItemWelcome.IsSelected)
+                {
+                    if(welcomeViewModel == null)
+                    {
+                        welcomeViewModel = new WelcomeViewModel(app);
+                    }
+                    app.CurrentPageViewModel = welcomeViewModel;
+
+                } else if(TabItemRecord.IsSelected)
                 {
                     if(recordViewModel == null)
                     {
@@ -95,6 +109,44 @@ namespace Sessions
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Application.Current.Shutdown();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Check if it is the first time the application is loaded. If it is the case,
+            // configure the directory to store the data.
+            if(System.Configuration.ConfigurationManager.AppSettings["FirstTime"] == "T")
+            {
+                string filename = "";
+                System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog();
+                System.Windows.Forms.DialogResult result = dlg.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    filename = dlg.SelectedPath;
+                    filename += "\\BioTechSessions.xml";
+
+                    if (!File.Exists(filename))
+                    {
+                        XDocument doc = new XDocument(new XElement("Sessions"));
+                        doc.Save(filename);
+                    }
+
+                    string appPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                    string configFile = System.IO.Path.Combine(appPath, "Sessions.exe.config");
+                    ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
+                    configFileMap.ExeConfigFilename = configFile;
+                    System.Configuration.Configuration config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+
+                    config.AppSettings.Settings["FirstTime"].Value = "F";
+                    config.AppSettings.Settings["xmlSessionsFile"].Value = filename;
+                    config.Save();
+
+                    MessageBox.Show("The directory was configured. Please, restart de application.");
+                    System.Windows.Application.Current.Shutdown();
+                }
+
+            }
         }
     }
 }
